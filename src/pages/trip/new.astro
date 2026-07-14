@@ -1,0 +1,125 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Create a New Trip — SplitYatra">
+  <div class="bg-canvas-parchment py-section px-lg flex items-center justify-center min-h-[85vh]">
+    <div class="max-w-[480px] w-full bg-white border border-hairline rounded-lg p-lg shadow-sm">
+      
+      <!-- Page Header -->
+      <div class="mb-lg text-center md:text-left">
+        <h1 class="text-display-md font-display font-semibold text-ink tracking-tight mb-xxs">
+          Create a New Trip
+        </h1>
+        <p class="text-caption text-ink-muted-48 leading-relaxed">
+          Set up a shared expense ledger for your group. No email verification or password required.
+        </p>
+      </div>
+
+      <!-- Creation Form -->
+      <form id="create-trip-form" class="space-y-md">
+        <!-- Trip Name Input -->
+        <div>
+          <label for="trip-name" class="block text-caption-strong text-ink font-semibold mb-xxs">
+            Trip Name
+          </label>
+          <input
+            type="text"
+            id="trip-name"
+            name="name"
+            placeholder="e.g. Goa Trip Dec 2026"
+            required
+            maxlength="50"
+            class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[12px] focus:outline-none focus:border-primary placeholder:text-zinc-300"
+          />
+        </div>
+
+        <!-- Creator Name Input -->
+        <div>
+          <label for="creator-name" class="block text-caption-strong text-ink font-semibold mb-xxs">
+            Your Name
+          </label>
+          <input
+            type="text"
+            id="creator-name"
+            name="creatorName"
+            placeholder="What should friends call you?"
+            required
+            maxlength="30"
+            class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[12px] focus:outline-none focus:border-primary placeholder:text-zinc-300"
+          />
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          id="submit-btn"
+          class="w-full bg-primary text-on-primary font-sans font-medium text-body py-[12px] rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer text-center"
+        >
+          Create Trip
+        </button>
+
+        <!-- Error Message -->
+        <p id="error-msg" class="hidden text-caption text-red-600 bg-red-50 border border-red-200 rounded-sm p-sm mt-xs"></p>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('create-trip-form') as HTMLFormElement | null;
+    const errorEl = document.getElementById('error-msg');
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement | null;
+
+    if (form && errorEl && submitBtn) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // UI feedback
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating...';
+        errorEl.classList.add('hidden');
+
+        const formData = new FormData(form);
+        const name = formData.get('name')?.toString().trim();
+        const creatorName = formData.get('creatorName')?.toString().trim();
+
+        try {
+          const res = await fetch('/api/trips', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, creatorName }),
+          });
+
+          const result = await res.json();
+
+          if (!res.ok) {
+            throw new Error(result.error || 'Failed to create trip');
+          }
+
+          const { trip } = result;
+
+          // 1. Store trip membership identity for this trip code
+          localStorage.setItem(`split_yatra_member_${trip.code}`, trip.createdByMemberId);
+
+          // 2. Add trip to local trips index for the navbar dropdown list
+          const localTrips = JSON.parse(localStorage.getItem('split_yatra_trips') || '[]');
+          
+          // Prevent duplicates
+          const alreadyExists = localTrips.some((t: { code: string }) => t.code === trip.code);
+          if (!alreadyExists) {
+            localTrips.push({ code: trip.code, name: trip.name });
+            localStorage.setItem('split_yatra_trips', JSON.stringify(localTrips));
+          }
+
+          // 3. Redirect to dashboard
+          window.location.href = `/trip/${trip.code}`;
+        } catch (error: any) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Create Trip';
+          errorEl.textContent = error.message || 'An unexpected error occurred';
+          errorEl.classList.remove('hidden');
+        }
+      });
+    }
+  </script>
+</Layout>

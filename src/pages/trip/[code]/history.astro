@@ -1,0 +1,255 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SubNav from '../../../components/SubNav.astro';
+import { getTripByCode } from '../../../lib/store';
+import { formatINR, formatISTDate } from '../../../lib/format';
+
+const { code } = Astro.params;
+
+if (!code) {
+  return Astro.redirect('/');
+}
+
+const tripData = await getTripByCode(code);
+if (!tripData) {
+  return Astro.redirect('/');
+}
+
+const { trip, members, expenses, shares } = tripData;
+
+// Sort expenses chronologically descending
+const sortedExpenses = [...expenses].sort(
+  (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+);
+---
+
+<Layout title={`Expense History — ${trip.name}`} noindex={true}>
+  <!-- Identity Redirect Script (run immediately to block FOUC) -->
+  <script define:vars={{ code }}>
+    if (!localStorage.getItem(`split_yatra_member_${code}`)) {
+      window.location.replace(`/trip/${code}/join`);
+    }
+  </script>
+
+  <!-- Frosted SubNav -->
+  <SubNav code={code} activeTab="history" tripName={trip.name} />
+
+  <div class="bg-canvas-parchment min-h-[90vh] pb-[60px] pt-lg px-lg">
+    <div class="max-w-[1440px] w-full mx-auto space-y-lg">
+      
+      <!-- Filters header card -->
+      <div class="bg-white border border-hairline rounded-lg p-lg shadow-sm">
+        <h2 class="text-body-strong font-semibold text-ink mb-md">Filter Expenses</h2>
+        
+        <div class="flex flex-col sm:flex-row gap-md">
+          <!-- Category Filter -->
+          <div class="flex-1">
+            <label for="filter-category" class="block text-caption-strong text-ink font-semibold mb-xxs">Category</label>
+            <div class="relative">
+              <select
+                id="filter-category"
+                class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[9px] focus:outline-none focus:border-primary appearance-none cursor-pointer"
+              >
+                <option value="all">All Categories</option>
+                <option value="food">🍔 Food</option>
+                <option value="travel">🚗 Travel</option>
+                <option value="stay">🏨 Stay</option>
+                <option value="sightseeing">🎟️ Sightseeing/Tickets</option>
+                <option value="shopping">🛒 Shopping</option>
+                <option value="alcohol">🍺 Alcohol</option>
+                <option value="misc">📦 Miscellaneous</option>
+              </select>
+              <div class="pointer-events-none absolute right-lg top-1/2 -translate-y-1/2 text-ink-muted-48">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payer Filter -->
+          <div class="flex-1">
+            <label for="filter-payer" class="block text-caption-strong text-ink font-semibold mb-xxs">Paid By</label>
+            <div class="relative">
+              <select
+                id="filter-payer"
+                class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[9px] focus:outline-none focus:border-primary appearance-none cursor-pointer"
+              >
+                <option value="all">All Members</option>
+                {members.map((m) => (
+                  <option value={m.id}>{m.name}</option>
+                ))}
+              </select>
+              <div class="pointer-events-none absolute right-lg top-1/2 -translate-y-1/2 text-ink-muted-48">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expense History Log List -->
+      <div class="space-y-sm" id="expense-log-list">
+        {sortedExpenses.length === 0 ? (
+          <div class="bg-white border border-hairline rounded-lg p-xxl text-center text-ink-muted-48">
+            <span class="text-[56px] block mb-sm">📭</span>
+            <h3 class="text-body-strong font-semibold text-ink mb-xxs">No Expenses Found</h3>
+            <p class="text-caption mb-md">This trip doesn't have any logged entries matching current filters.</p>
+            <a
+              href={`/trip/${code}/expense/new`}
+              class="bg-primary text-on-primary font-sans font-medium text-body px-xl py-xs rounded-pill hover:bg-primary-focus active:scale-95 transition-all inline-block select-none cursor-pointer"
+            >
+              Add Expense
+            </a>
+          </div>
+        ) : (
+          sortedExpenses.map((exp) => {
+            const payer = members.find((m) => m.id === exp.paidByMemberId);
+            const payerName = payer ? payer.name : 'Unknown';
+
+            // Find shares associated with this expense
+            const expShares = shares.filter((s) => s.expenseId === exp.id);
+
+            return (
+              <div
+                class="expense-item-row bg-white border border-hairline hover:border-zinc-300 rounded-lg p-lg cursor-pointer transition-all select-none flex flex-col gap-md"
+                data-category={exp.category}
+                data-payer-id={exp.paidByMemberId}
+              >
+                <!-- Row Header Summary -->
+                <div class="flex items-center justify-between gap-md">
+                  <div class="truncate">
+                    <h3 class="text-body-strong text-ink font-semibold truncate leading-snug">
+                      {exp.description}
+                    </h3>
+                    <p class="text-fine-print text-ink-muted-48 mt-[2px]">
+                      Paid by <span class="font-semibold text-ink-muted-80">{payerName}</span> &middot; {formatISTDate(exp.date)}
+                    </p>
+                    <span class="inline-block text-[9px] uppercase font-bold tracking-wider px-[6px] py-[2px] rounded-xs mt-[6px] bg-zinc-100 text-ink-muted-80 font-sans">
+                      {exp.category}
+                    </span>
+                  </div>
+                  
+                  <div class="text-right shrink-0 flex items-center gap-md">
+                    <div>
+                      <div class="text-[19px] font-semibold text-ink">
+                        {formatINR(exp.amountPaise)}
+                      </div>
+                      <span class="text-[10px] text-ink-muted-48 block">Tap to expand</span>
+                    </div>
+                    <!-- Indicator caret -->
+                    <div class="text-ink-muted-48 transition-transform rotate-0 caret-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Row Expandable Details (Hidden by Default) -->
+                <div class="hidden border-t border-divider-soft pt-md mt-xxs space-y-md expandable-details animate-slideDown">
+                  <div>
+                    <h4 class="text-caption-strong text-ink font-semibold mb-xs">Split Details ({exp.splitType.replace('_', ' ')})</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-xs">
+                      {expShares.map((share) => {
+                        const memberObj = members.find((m) => m.id === share.memberId);
+                        const memberName = memberObj ? memberObj.name : 'Unknown';
+                        return (
+                          <div class="flex justify-between items-center bg-surface-pearl border border-hairline rounded-sm px-sm py-[6px] text-caption">
+                            <span class="text-ink-muted-80 truncate pr-sm">👤 {memberName}</span>
+                            <span class="font-semibold text-ink shrink-0">{formatINR(share.sharePaise)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  <!-- CTA actions inside drawer -->
+                  <div class="flex justify-end gap-sm pt-xs">
+                    <a
+                      href={`/trip/${code}/expense/${exp.id}/edit`}
+                      class="border border-primary text-primary text-[12px] font-sans font-medium px-lg py-xs rounded-pill hover:bg-zinc-50 active:scale-95 transition-all text-center select-none cursor-pointer"
+                    >
+                      ✏️ Edit / Delete
+                    </a>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Client-side filter and expand events -->
+  <script>
+    // Toggle expand/collapse of rows
+    const logList = document.getElementById('expense-log-list');
+    if (logList) {
+      logList.addEventListener('click', (e) => {
+        // Prevent trigger if clicking on links or buttons inside row
+        const target = e.target as HTMLElement;
+        if (target.closest('a') || target.closest('button')) {
+          return;
+        }
+
+        const row = target.closest('.expense-item-row');
+        if (!row) return;
+
+        const details = row.querySelector('.expandable-details');
+        const caret = row.querySelector('.caret-icon');
+        
+        if (details && caret) {
+          const isHidden = details.classList.contains('hidden');
+          
+          if (isHidden) {
+            details.classList.remove('hidden');
+            caret.classList.add('rotate-180');
+          } else {
+            details.classList.add('hidden');
+            caret.classList.remove('rotate-180');
+          }
+        }
+      });
+    }
+
+    // Client-side filtering logic
+    const categorySelect = document.getElementById('filter-category') as HTMLSelectElement | null;
+    const payerSelect = document.getElementById('filter-payer') as HTMLSelectElement | null;
+
+    function applyFilters() {
+      if (!categorySelect || !payerSelect) return;
+      const catVal = categorySelect.value;
+      const payerVal = payerSelect.value;
+
+      const rows = document.querySelectorAll('.expense-item-row');
+      let visibleCount = 0;
+
+      rows.forEach((row) => {
+        const rowCat = row.getAttribute('data-category');
+        const rowPayer = row.getAttribute('data-payer-id');
+
+        const catMatches = catVal === 'all' || rowCat === catVal;
+        const payerMatches = payerVal === 'all' || rowPayer === payerVal;
+
+        if (catMatches && payerMatches) {
+          (row as HTMLElement).style.display = 'flex';
+          visibleCount++;
+        } else {
+          (row as HTMLElement).style.display = 'none';
+        }
+      });
+
+      // Show empty state if everything is filtered out
+      const emptyState = document.querySelector('.bg-white.text-center');
+      if (emptyState) {
+        if (visibleCount === 0) {
+          (emptyState as HTMLElement).style.display = 'block';
+        } else {
+          (emptyState as HTMLElement).style.display = 'none';
+        }
+      }
+    }
+
+    if (categorySelect) categorySelect.addEventListener('change', applyFilters);
+    if (payerSelect) payerSelect.addEventListener('change', applyFilters);
+  </script>
+</Layout>

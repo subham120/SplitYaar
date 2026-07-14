@@ -1,0 +1,311 @@
+import { t as __exportAll } from "./rolldown-runtime_D7D4PA-g.mjs";
+import { C as createAstro, _ as addAttribute, a as renderComponent, d as renderTemplate, h as maybeRenderHead, v as defineScriptVars, w as createComponent } from "./server_Ck1Ey-Cv.mjs";
+import "./compiler_DXTdqtzG.mjs";
+import { a as getTripByCode } from "./store_hUDrmsS2.mjs";
+import { t as $$Layout } from "./Layout_pPVGDrUr.mjs";
+//#region src/pages/trip/[code]/expense/new.astro
+var new_exports = /* @__PURE__ */ __exportAll({
+	default: () => $$New,
+	file: () => $$file,
+	url: () => $$url
+});
+createAstro("https://astro.build");
+var $$New = createComponent(async ($$result, $$props, $$slots) => {
+	const Astro = $$result.createAstro($$props, $$slots);
+	Astro.self = $$New;
+	const { code } = Astro.params;
+	if (!code) return Astro.redirect("/");
+	const tripData = await getTripByCode(code);
+	if (!tripData) return Astro.redirect("/");
+	const { trip, members } = tripData;
+	return renderTemplate`${renderComponent($$result, "Layout", $$Layout, {
+		"title": `Add Expense — ${trip.name}`,
+		"noindex": true
+	}, { "default": async ($$result) => renderTemplate`
+  
+  <script>(function(){${defineScriptVars({ code })}
+    if (!localStorage.getItem(\`split_yatra_member_\${code}\`)) {
+      window.location.replace(\`/trip/\${code}/join\`);
+    }
+  })();<\/script>${maybeRenderHead($$result)}<div class="bg-canvas-parchment py-section px-lg flex items-center justify-center min-h-[90vh] pb-[60px]"><div class="max-w-[540px] w-full bg-white border border-hairline rounded-lg p-lg shadow-sm"><!-- Header --><div class="mb-lg"><a${addAttribute(`/trip/${code}`, "href")} class="text-primary text-caption hover:underline inline-flex items-center gap-[4px] mb-sm select-none"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>Back to Dashboard</a><h1 class="text-display-md font-display font-semibold text-ink tracking-tight">Add Expense</h1></div><!-- Expense Form --><form id="expense-form" class="space-y-md"><!-- Description --><div><label for="exp-desc" class="block text-caption-strong text-ink font-semibold mb-xxs">Description</label><input type="text" id="exp-desc" name="description" placeholder="e.g. Dinner at beach shack" required maxlength="100" class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[11px] focus:outline-none focus:border-primary placeholder:text-zinc-300"></div><!-- Amount (₹) --><div><label for="exp-amount" class="block text-caption-strong text-ink font-semibold mb-xxs">Amount (₹)</label><input type="number" id="exp-amount" name="amount" placeholder="0.00" required step="0.01" min="0.01" class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[11px] focus:outline-none focus:border-primary placeholder:text-zinc-300"></div><!-- Paid By Payer Dropdown --><div><label for="exp-payer" class="block text-caption-strong text-ink font-semibold mb-xxs">Paid By</label><div class="relative"><select id="exp-payer" name="paidByMemberId" required class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[11px] focus:outline-none focus:border-primary appearance-none cursor-pointer">${members.map((m) => renderTemplate`<option${addAttribute(m.id, "value")}>${m.name}</option>`)}</select><div class="pointer-events-none absolute right-lg top-1/2 -translate-y-1/2 text-ink-muted-48"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></div></div></div><!-- Category Chip Selector --><div><span class="block text-caption-strong text-ink font-semibold mb-xs">Category</span><div class="flex flex-wrap gap-xs" id="category-selector">${[
+		{
+			id: "food",
+			label: "🍔 Food"
+		},
+		{
+			id: "travel",
+			label: "🚗 Travel"
+		},
+		{
+			id: "stay",
+			label: "🏨 Stay"
+		},
+		{
+			id: "sightseeing",
+			label: "🎟️ Tickets"
+		},
+		{
+			id: "shopping",
+			label: "🛒 Shopping"
+		},
+		{
+			id: "alcohol",
+			label: "🍺 Alcohol"
+		},
+		{
+			id: "misc",
+			label: "📦 Misc"
+		}
+	].map((cat, idx) => renderTemplate`<button type="button"${addAttribute(cat.id, "data-category")}${addAttribute(`category-chip rounded-pill px-md py-xs text-[12px] font-sans transition-all select-none cursor-pointer border ${idx === 0 ? "bg-primary text-on-primary border-primary font-semibold" : "bg-zinc-100 text-ink border-transparent hover:bg-zinc-200"}`, "class")}>${cat.label}</button>`)}</div><input type="hidden" name="category" id="hidden-category" value="food"></div><!-- Split Type Segmented Control --><div><span class="block text-caption-strong text-ink font-semibold mb-xs">Split Method</span><div class="flex bg-zinc-100 rounded-pill p-[2px] border border-zinc-200 select-none"><button type="button" id="btn-split-all" data-type="equal_all" class="split-type-btn flex-1 text-center py-xs text-button-utility font-sans font-medium rounded-pill transition-all cursor-pointer bg-white text-ink shadow-sm">Split Equally</button><button type="button" id="btn-split-selected" data-type="equal_selected" class="split-type-btn flex-1 text-center py-xs text-button-utility font-sans font-medium rounded-pill transition-all cursor-pointer text-ink-muted-48 hover:text-ink">Selected</button><button type="button" id="btn-split-custom" data-type="custom" class="split-type-btn flex-1 text-center py-xs text-button-utility font-sans font-medium rounded-pill transition-all cursor-pointer text-ink-muted-48 hover:text-ink">Custom (₹)</button></div><input type="hidden" name="splitType" id="hidden-split-type" value="equal_all"></div><!-- Section C1: Equal (Selected) Exclusions Box --><div id="section-split-selected" class="hidden bg-surface-pearl border border-hairline rounded-md p-md"><span class="block text-caption-strong text-ink font-semibold mb-sm">Who is included in this split?</span><div class="grid grid-cols-2 gap-sm">${members.map((m) => renderTemplate`<label class="flex items-center gap-xs text-caption font-medium select-none cursor-pointer"><input type="checkbox"${addAttribute(m.id, "value")} checked class="exclusion-checkbox w-4 h-4 rounded-xs border-hairline text-primary focus:ring-primary cursor-pointer"><span class="truncate">${m.name}</span></label>`)}</div></div><!-- Section C2: Custom Splits Input Fields --><div id="section-split-custom" class="hidden bg-surface-pearl border border-hairline rounded-md p-md space-y-sm"><div class="flex items-center justify-between border-b border-divider-soft pb-xs mb-xs"><span class="text-caption-strong text-ink font-semibold">Allocate custom amounts</span><span class="text-[12px] font-semibold text-ink-muted-48" id="custom-total-counter">Allocated: ₹0.00 / ₹0.00</span></div><div class="space-y-xs">${members.map((m) => renderTemplate`<div class="flex items-center justify-between gap-md"><span class="text-caption font-medium text-ink truncate max-w-[150px]">${m.name}</span><div class="relative max-w-[120px] w-full"><span class="absolute left-xs top-1/2 -translate-y-1/2 text-caption text-ink-muted-48">₹</span><input type="number" step="0.01" min="0" placeholder="0.00"${addAttribute(m.id, "data-member-id")} class="custom-member-input w-full bg-white text-ink text-right font-sans text-caption border border-hairline rounded-pill pl-md pr-xs py-[6px] focus:outline-none focus:border-primary placeholder:text-zinc-200"></div></div>`)}</div><!-- Allocation error text --><p id="custom-split-error" class="hidden text-fine-print text-red-600 font-semibold"></p></div><!-- Submit Button --><button type="submit" id="submit-btn" class="w-full bg-primary text-on-primary font-sans font-medium text-body py-[12px] rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer mt-lg text-center">Add Expense</button><!-- Error Message --><p id="error-msg" class="hidden text-caption text-red-600 bg-red-50 border border-red-200 rounded-sm p-sm mt-xs"></p></form></div></div>
+
+  
+  <script>(function(){${defineScriptVars({
+		code,
+		members
+	})}
+    // Resolve Payer Default to local User
+    const currentMemberId = localStorage.getItem(\`split_yatra_member_\${code}\`);
+    const payerSelect = document.getElementById('exp-payer');
+    if (payerSelect && currentMemberId) {
+      payerSelect.value = currentMemberId;
+    }
+
+    // Category Selector Buttons
+    const categorySelector = document.getElementById('category-selector');
+    const hiddenCategory = document.getElementById('hidden-category');
+    if (categorySelector && hiddenCategory) {
+      categorySelector.addEventListener('click', (e) => {
+        const btn = (e.target).closest('.category-chip');
+        if (!btn) return;
+        
+        // Remove active class from all chips
+        document.querySelectorAll('.category-chip').forEach(c => {
+          c.className = "category-chip rounded-pill px-md py-xs text-[12px] font-sans transition-all select-none cursor-pointer border bg-zinc-100 text-ink border-transparent hover:bg-zinc-200";
+        });
+        
+        // Set active class to clicked chip
+        btn.className = "category-chip rounded-pill px-md py-xs text-[12px] font-sans transition-all select-none cursor-pointer border bg-primary text-on-primary border-primary font-semibold";
+        hiddenCategory.value = btn.getAttribute('data-category');
+      });
+    }
+
+    // Split Type Buttons Toggling
+    const splitTypeButtons = document.querySelectorAll('.split-type-btn');
+    const hiddenSplitType = document.getElementById('hidden-split-type');
+    const sectionSelected = document.getElementById('section-split-selected');
+    const sectionCustom = document.getElementById('section-split-custom');
+
+    splitTypeButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        // Toggle active style
+        splitTypeButtons.forEach(b => {
+          b.className = "split-type-btn flex-1 text-center py-xs text-button-utility font-sans font-medium rounded-pill transition-all cursor-pointer text-ink-muted-48 hover:text-ink";
+        });
+        btn.className = "split-type-btn flex-1 text-center py-xs text-button-utility font-sans font-medium rounded-pill transition-all cursor-pointer bg-white text-ink shadow-sm";
+        
+        const type = btn.getAttribute('data-type');
+        hiddenSplitType.value = type;
+
+        // Hide/Show containers
+        if (type === 'equal_all') {
+          sectionSelected.classList.add('hidden');
+          sectionCustom.classList.add('hidden');
+        } else if (type === 'equal_selected') {
+          sectionSelected.classList.remove('hidden');
+          sectionCustom.classList.add('hidden');
+        } else if (type === 'custom') {
+          sectionSelected.classList.add('hidden');
+          sectionCustom.classList.remove('hidden');
+          triggerCustomAllocationCount();
+        }
+      });
+    });
+
+    // Custom Split real-time counter & check
+    const amountInput = document.getElementById('exp-amount');
+    const customInputs = document.querySelectorAll('.custom-member-input');
+    const customCounter = document.getElementById('custom-total-counter');
+    const customSplitError = document.getElementById('custom-split-error');
+    const submitBtn = document.getElementById('submit-btn');
+
+    function triggerCustomAllocationCount() {
+      const totalAmount = parseFloat(amountInput.value || '0');
+      const totalAmountPaise = Math.round(totalAmount * 100);
+
+      let allocatedPaise = 0;
+      customInputs.forEach(input => {
+        const val = parseFloat(input.value || '0');
+        allocatedPaise += Math.round(val * 100);
+      });
+
+      const remainingPaise = totalAmountPaise - allocatedPaise;
+      
+      const formatAmount = (paise) => {
+        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(paise / 100);
+      };
+
+      if (customCounter) {
+        customCounter.textContent = \`Allocated: \${formatAmount(allocatedPaise)} / \${formatAmount(totalAmountPaise)}\`;
+      }
+
+      if (hiddenSplitType.value === 'custom') {
+        if (remainingPaise !== 0) {
+          const diffWord = remainingPaise > 0 ? 'under-allocated' : 'over-allocated';
+          const diffAmt = formatAmount(Math.abs(remainingPaise));
+          customSplitError.textContent = \`⚠️ Allocation is \${diffWord} by \${diffAmt}. Check sums.\`;
+          customSplitError.classList.remove('hidden');
+          submitBtn.disabled = true;
+          submitBtn.opacity = '0.5';
+        } else {
+          customSplitError.classList.add('hidden');
+          submitBtn.disabled = false;
+          submitBtn.opacity = '1.0';
+        }
+      } else {
+        customSplitError.classList.add('hidden');
+        submitBtn.disabled = false;
+      }
+    }
+
+    if (amountInput) {
+      amountInput.addEventListener('input', triggerCustomAllocationCount);
+    }
+    customInputs.forEach(input => {
+      input.addEventListener('input', triggerCustomAllocationCount);
+    });
+
+    // Form Submission
+    const form = document.getElementById('expense-form');
+    const mainError = document.getElementById('error-msg');
+
+    if (form && submitBtn && mainError) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        mainError.classList.add('hidden');
+
+        const totalAmount = parseFloat(amountInput.value || '0');
+        const amountPaise = Math.round(totalAmount * 100);
+
+        if (isNaN(amountPaise) || amountPaise <= 0) {
+          mainError.textContent = 'Invalid amount entered.';
+          mainError.classList.remove('hidden');
+          return;
+        }
+
+        const description = (document.getElementById('exp-desc')).value.trim();
+        const paidByMemberId = payerSelect.value;
+        const category = hiddenCategory.value;
+        const splitType = hiddenSplitType.value;
+        const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD local
+
+        let finalShares = [];
+
+        // Build shares depending on splitType
+        if (splitType === 'equal_all') {
+          // Equal split among all members
+          const memberIds = members.map(m => m.id);
+          const baseShare = Math.floor(amountPaise / memberIds.length);
+          const remainder = amountPaise - (baseShare * memberIds.length);
+
+          finalShares = memberIds.map(mId => ({
+            memberId: mId,
+            sharePaise: baseShare
+          }));
+
+          // Remainder paise logic (payer gets it if in split, else first member)
+          const payerIdx = memberIds.indexOf(paidByMemberId);
+          if (payerIdx !== -1) {
+            finalShares[payerIdx].sharePaise += remainder;
+          } else {
+            finalShares[0].sharePaise += remainder;
+          }
+        } 
+        else if (splitType === 'equal_selected') {
+          // Equal split among selected members
+          const checkboxes = document.querySelectorAll('.exclusion-checkbox:checked');
+          const memberIds = Array.from(checkboxes).map(cb => cb.value);
+
+          if (memberIds.length === 0) {
+            mainError.textContent = 'Please select at least one member to split with.';
+            mainError.classList.remove('hidden');
+            return;
+          }
+
+          const baseShare = Math.floor(amountPaise / memberIds.length);
+          const remainder = amountPaise - (baseShare * memberIds.length);
+
+          finalShares = memberIds.map(mId => ({
+            memberId: mId,
+            sharePaise: baseShare
+          }));
+
+          const payerIdx = memberIds.indexOf(paidByMemberId);
+          if (payerIdx !== -1) {
+            finalShares[payerIdx].sharePaise += remainder;
+          } else {
+            finalShares[0].sharePaise += remainder;
+          }
+        } 
+        else if (splitType === 'custom') {
+          // Custom split mapping
+          let totalAllocatedPaise = 0;
+          
+          finalShares = Array.from(customInputs).map(input => {
+            const memberId = input.getAttribute('data-member-id');
+            const val = parseFloat(input.value || '0');
+            const sharePaise = Math.round(val * 100);
+            totalAllocatedPaise += sharePaise;
+            
+            return { memberId, sharePaise };
+          });
+
+          if (totalAllocatedPaise !== amountPaise) {
+            mainError.textContent = \`Split amounts sum to ₹\${totalAllocatedPaise / 100}, which does not match total expense ₹\${amountPaise / 100}.\`;
+            mainError.classList.remove('hidden');
+            return;
+          }
+        }
+
+        // POST request to API
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+
+        try {
+          const res = await fetch(\`/api/trips/\${code}/expenses\`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              description,
+              amountPaise,
+              paidByMemberId,
+              category,
+              splitType,
+              date,
+              shares: finalShares
+            })
+          });
+
+          const result = await res.json();
+          if (!res.ok) {
+            throw new Error(result.error || 'Failed to add expense');
+          }
+
+          // Redirect back
+          window.location.href = \`/trip/\${code}\`;
+        } catch (error) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Add Expense';
+          mainError.textContent = error.message || 'An error occurred';
+          mainError.classList.remove('hidden');
+        }
+      });
+    }
+  })();<\/script>` })}`;
+}, "D:/project/SplitYaar/src/pages/trip/[code]/expense/new.astro", void 0);
+var $$file = "D:/project/SplitYaar/src/pages/trip/[code]/expense/new.astro";
+var $$url = "/trip/[code]/expense/new";
+//#endregion
+//#region \0virtual:astro:page:src/pages/trip/[code]/expense/new@_@astro
+var page = () => new_exports;
+//#endregion
+export { page };

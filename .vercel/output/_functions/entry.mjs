@@ -1,6 +1,6 @@
 import { $ as AstroError, B as PrerenderDynamicEndpointPathCollide, D as MiddlewareNotAResponse, E as MiddlewareNoDataOrNextCalled, G as SessionStorageInitError, H as ReservedSlotName, I as NoMatchingStaticPathFound, J as UnableToLoadLogger, K as SessionStorageSaveError, Q as i18nNoLocaleFoundInPath, R as PageNumberParamNotFound, T as LocalsReassigned, U as ResponseSentError, W as RewriteWithBodyUsed, a as ClientAddressNotAvailable, b as InvalidGetStaticPathsEntry, g as GetStaticPathsRequired, h as GetStaticPathsInvalidRouteParam, i as CacheNotEnabled, m as GetStaticPathsExpectedParams, n as ActionsReturnedInvalidDataError, p as ForbiddenRewrite, q as StaticClientAddressNotAvailable, r as AstroResponseHeadersReassigned, t as ActionNotFoundError, w as LocalsNotAnObject, x as InvalidGetStaticPathsReturn, z as PrerenderClientAddressNotAvailable } from "./chunks/errors-data_sKwIzwfZ.mjs";
 import { C as matchPattern, a as fileExtension, d as removeLeadingForwardSlash, h as trimSlashes, i as collapseDuplicateTrailingSlashes, l as joinPaths, m as slash, n as collapseDuplicateLeadingSlashes, o as hasFileExtension, p as removeTrailingForwardSlash, r as collapseDuplicateSlashes, s as isInternalPath, t as appendForwardSlash, u as prependForwardSlash } from "./chunks/path_Cvh8ipoD.mjs";
-import { A as clientAddressSymbol, D as REDIRECT_STATUS_CODES, E as DEFAULT_404_COMPONENT, M as originPathnameSymbol, N as pipelineSymbol, O as REROUTABLE_STATUS_CODES, P as responseSentSymbol$1, T as ASTRO_GENERATOR, a as renderComponent, d as renderTemplate, f as decodeKey, i as renderJSX, j as fetchStateSymbol, k as appSymbol, l as renderSlotToString, m as generateCspDigest, o as chunkToString, p as decryptString, r as renderPage, s as createSlotValueFromString, u as isRenderTemplateResult, v as isRenderInstruction, w as ASTRO_ERROR_HEADER, x as renderEndpoint, y as isAstroComponentFactory } from "./chunks/server_CM2-jHE_.mjs";
+import { A as appSymbol, D as DEFAULT_404_COMPONENT, E as ASTRO_GENERATOR, F as responseSentSymbol$1, M as fetchStateSymbol, N as originPathnameSymbol, O as REDIRECT_STATUS_CODES, P as pipelineSymbol, S as renderEndpoint, T as ASTRO_ERROR_HEADER, a as renderComponent, b as isAstroComponentFactory, d as renderTemplate, f as decodeKey, i as renderJSX, j as clientAddressSymbol, k as REROUTABLE_STATUS_CODES, l as renderSlotToString, m as generateCspDigest, o as chunkToString, p as decryptString, r as renderPage, s as createSlotValueFromString, u as isRenderTemplateResult, y as isRenderInstruction } from "./chunks/server_Ck1Ey-Cv.mjs";
 import nodePath from "node:path";
 import "@vercel/routing-utils";
 import colors from "piccolore";
@@ -19,7 +19,7 @@ var ASTRO_LOCALS_HEADER = "x-astro-locals";
 var ASTRO_MIDDLEWARE_SECRET_HEADER = "x-astro-middleware-secret";
 //#endregion
 //#region \0virtual:astro-vercel:config
-var middlewareSecret = "3d12d8d7-7ee8-4612-a8b8-8e578a3239fa";
+var middlewareSecret = "138a075f-ecc0-4453-b77f-187290cea45b";
 //#endregion
 //#region node_modules/astro/dist/actions/consts.js
 var ACTION_QUERY_PARAMS = {
@@ -5132,6 +5132,625 @@ var renderers = [];
 		"scripts": [],
 		"styles": [],
 		"routeData": {
+			"route": "/api/trips/[id]/expenses/[expenseId]",
+			"isIndex": false,
+			"type": "endpoint",
+			"pattern": "^\\/api\\/trips\\/([^/]+?)\\/expenses\\/([^/]+?)\\/?$",
+			"segments": [
+				[{
+					"content": "api",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "trips",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "id",
+					"dynamic": true,
+					"spread": false
+				}],
+				[{
+					"content": "expenses",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "expenseId",
+					"dynamic": true,
+					"spread": false
+				}]
+			],
+			"params": ["id", "expenseId"],
+			"component": "src/pages/api/trips/[id]/expenses/[expenseId].ts",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/api/trips/[id]/expenses",
+			"isIndex": false,
+			"type": "endpoint",
+			"pattern": "^\\/api\\/trips\\/([^/]+?)\\/expenses\\/?$",
+			"segments": [
+				[{
+					"content": "api",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "trips",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "id",
+					"dynamic": true,
+					"spread": false
+				}],
+				[{
+					"content": "expenses",
+					"dynamic": false,
+					"spread": false
+				}]
+			],
+			"params": ["id"],
+			"component": "src/pages/api/trips/[id]/expenses.ts",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/api/trips/[id]/members/[memberId]/upi",
+			"isIndex": false,
+			"type": "endpoint",
+			"pattern": "^\\/api\\/trips\\/([^/]+?)\\/members\\/([^/]+?)\\/upi\\/?$",
+			"segments": [
+				[{
+					"content": "api",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "trips",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "id",
+					"dynamic": true,
+					"spread": false
+				}],
+				[{
+					"content": "members",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "memberId",
+					"dynamic": true,
+					"spread": false
+				}],
+				[{
+					"content": "upi",
+					"dynamic": false,
+					"spread": false
+				}]
+			],
+			"params": ["id", "memberId"],
+			"component": "src/pages/api/trips/[id]/members/[memberId]/upi.ts",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/api/trips/[id]/members/[memberId]",
+			"isIndex": false,
+			"type": "endpoint",
+			"pattern": "^\\/api\\/trips\\/([^/]+?)\\/members\\/([^/]+?)\\/?$",
+			"segments": [
+				[{
+					"content": "api",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "trips",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "id",
+					"dynamic": true,
+					"spread": false
+				}],
+				[{
+					"content": "members",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "memberId",
+					"dynamic": true,
+					"spread": false
+				}]
+			],
+			"params": ["id", "memberId"],
+			"component": "src/pages/api/trips/[id]/members/[memberId].ts",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/api/trips/[id]/members",
+			"isIndex": false,
+			"type": "endpoint",
+			"pattern": "^\\/api\\/trips\\/([^/]+?)\\/members\\/?$",
+			"segments": [
+				[{
+					"content": "api",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "trips",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "id",
+					"dynamic": true,
+					"spread": false
+				}],
+				[{
+					"content": "members",
+					"dynamic": false,
+					"spread": false
+				}]
+			],
+			"params": ["id"],
+			"component": "src/pages/api/trips/[id]/members.ts",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/api/trips/[id]/settlement",
+			"isIndex": false,
+			"type": "endpoint",
+			"pattern": "^\\/api\\/trips\\/([^/]+?)\\/settlement\\/?$",
+			"segments": [
+				[{
+					"content": "api",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "trips",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "id",
+					"dynamic": true,
+					"spread": false
+				}],
+				[{
+					"content": "settlement",
+					"dynamic": false,
+					"spread": false
+				}]
+			],
+			"params": ["id"],
+			"component": "src/pages/api/trips/[id]/settlement.ts",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/api/trips/[id]",
+			"isIndex": false,
+			"type": "endpoint",
+			"pattern": "^\\/api\\/trips\\/([^/]+?)\\/?$",
+			"segments": [
+				[{
+					"content": "api",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "trips",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "id",
+					"dynamic": true,
+					"spread": false
+				}]
+			],
+			"params": ["id"],
+			"component": "src/pages/api/trips/[id].ts",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/api/trips",
+			"isIndex": true,
+			"type": "endpoint",
+			"pattern": "^\\/api\\/trips\\/?$",
+			"segments": [[{
+				"content": "api",
+				"dynamic": false,
+				"spread": false
+			}], [{
+				"content": "trips",
+				"dynamic": false,
+				"spread": false
+			}]],
+			"params": [],
+			"component": "src/pages/api/trips/index.ts",
+			"pathname": "/api/trips",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/trip/new",
+			"isIndex": false,
+			"type": "page",
+			"pattern": "^\\/trip\\/new\\/?$",
+			"segments": [[{
+				"content": "trip",
+				"dynamic": false,
+				"spread": false
+			}], [{
+				"content": "new",
+				"dynamic": false,
+				"spread": false
+			}]],
+			"params": [],
+			"component": "src/pages/trip/new.astro",
+			"pathname": "/trip/new",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/trip/[code]/expense/new",
+			"isIndex": false,
+			"type": "page",
+			"pattern": "^\\/trip\\/([^/]+?)\\/expense\\/new\\/?$",
+			"segments": [
+				[{
+					"content": "trip",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "code",
+					"dynamic": true,
+					"spread": false
+				}],
+				[{
+					"content": "expense",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "new",
+					"dynamic": false,
+					"spread": false
+				}]
+			],
+			"params": ["code"],
+			"component": "src/pages/trip/[code]/expense/new.astro",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/trip/[code]/expense/[expenseId]/edit",
+			"isIndex": false,
+			"type": "page",
+			"pattern": "^\\/trip\\/([^/]+?)\\/expense\\/([^/]+?)\\/edit\\/?$",
+			"segments": [
+				[{
+					"content": "trip",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "code",
+					"dynamic": true,
+					"spread": false
+				}],
+				[{
+					"content": "expense",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "expenseId",
+					"dynamic": true,
+					"spread": false
+				}],
+				[{
+					"content": "edit",
+					"dynamic": false,
+					"spread": false
+				}]
+			],
+			"params": ["code", "expenseId"],
+			"component": "src/pages/trip/[code]/expense/[expenseId]/edit.astro",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/trip/[code]/history",
+			"isIndex": false,
+			"type": "page",
+			"pattern": "^\\/trip\\/([^/]+?)\\/history\\/?$",
+			"segments": [
+				[{
+					"content": "trip",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "code",
+					"dynamic": true,
+					"spread": false
+				}],
+				[{
+					"content": "history",
+					"dynamic": false,
+					"spread": false
+				}]
+			],
+			"params": ["code"],
+			"component": "src/pages/trip/[code]/history.astro",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/trip/[code]/join",
+			"isIndex": false,
+			"type": "page",
+			"pattern": "^\\/trip\\/([^/]+?)\\/join\\/?$",
+			"segments": [
+				[{
+					"content": "trip",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "code",
+					"dynamic": true,
+					"spread": false
+				}],
+				[{
+					"content": "join",
+					"dynamic": false,
+					"spread": false
+				}]
+			],
+			"params": ["code"],
+			"component": "src/pages/trip/[code]/join.astro",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/trip/[code]/members",
+			"isIndex": false,
+			"type": "page",
+			"pattern": "^\\/trip\\/([^/]+?)\\/members\\/?$",
+			"segments": [
+				[{
+					"content": "trip",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "code",
+					"dynamic": true,
+					"spread": false
+				}],
+				[{
+					"content": "members",
+					"dynamic": false,
+					"spread": false
+				}]
+			],
+			"params": ["code"],
+			"component": "src/pages/trip/[code]/members.astro",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/trip/[code]/settlement",
+			"isIndex": false,
+			"type": "page",
+			"pattern": "^\\/trip\\/([^/]+?)\\/settlement\\/?$",
+			"segments": [
+				[{
+					"content": "trip",
+					"dynamic": false,
+					"spread": false
+				}],
+				[{
+					"content": "code",
+					"dynamic": true,
+					"spread": false
+				}],
+				[{
+					"content": "settlement",
+					"dynamic": false,
+					"spread": false
+				}]
+			],
+			"params": ["code"],
+			"component": "src/pages/trip/[code]/settlement.astro",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
+			"route": "/trip/[code]",
+			"isIndex": false,
+			"type": "page",
+			"pattern": "^\\/trip\\/([^/]+?)\\/?$",
+			"segments": [[{
+				"content": "trip",
+				"dynamic": false,
+				"spread": false
+			}], [{
+				"content": "code",
+				"dynamic": true,
+				"spread": false
+			}]],
+			"params": ["code"],
+			"component": "src/pages/trip/[code].astro",
+			"prerender": false,
+			"fallbackRoutes": [],
+			"distURL": [],
+			"origin": "project",
+			"_meta": { "trailingSlash": "ignore" }
+		}
+	},
+	{
+		"file": "",
+		"links": [],
+		"scripts": [],
+		"styles": [],
+		"routeData": {
 			"route": "/",
 			"isIndex": true,
 			"type": "page",
@@ -5150,12 +5769,47 @@ var renderers = [];
 ].map(deserializeRouteInfo);
 //#endregion
 //#region \0virtual:astro:pages
-var _page0 = () => import("./chunks/generic_Bidgx46K.mjs");
-var _page1 = () => import("./chunks/index_Brge4NBD.mjs");
-var pageMap = /* @__PURE__ */ new Map([["node_modules/astro/dist/assets/endpoint/generic.js", _page0], ["src/pages/index.astro", _page1]]);
+var _page0 = () => import("./chunks/generic_Da8RpRCb.mjs");
+var _page1 = () => import("./chunks/_expenseId__A7UvMbN5.mjs");
+var _page2 = () => import("./chunks/expenses_WLG__PV9.mjs");
+var _page3 = () => import("./chunks/upi_Bqjujn6J.mjs");
+var _page4 = () => import("./chunks/_memberId__DCgB0ZfF.mjs");
+var _page5 = () => import("./chunks/members_D4s99nrs.mjs");
+var _page6 = () => import("./chunks/settlement_Bo2uMdpu.mjs");
+var _page7 = () => import("./chunks/_id__DY5KiTqP.mjs");
+var _page8 = () => import("./chunks/index_CSFvzn7h.mjs");
+var _page9 = () => import("./chunks/new_Cbnuztie.mjs");
+var _page10 = () => import("./chunks/new_D_UxjqE-.mjs");
+var _page11 = () => import("./chunks/edit_TphahRwl.mjs");
+var _page12 = () => import("./chunks/history_8ucsY8Of.mjs");
+var _page13 = () => import("./chunks/join_B1Yy--i_.mjs");
+var _page14 = () => import("./chunks/members_M0qRWgMz.mjs");
+var _page15 = () => import("./chunks/settlement_DFXbe12D.mjs");
+var _page16 = () => import("./chunks/_code__9WP1b9Em.mjs");
+var _page17 = () => import("./chunks/index_CEyP46cZ.mjs");
+var pageMap = /* @__PURE__ */ new Map([
+	["node_modules/astro/dist/assets/endpoint/generic.js", _page0],
+	["src/pages/api/trips/[id]/expenses/[expenseId].ts", _page1],
+	["src/pages/api/trips/[id]/expenses.ts", _page2],
+	["src/pages/api/trips/[id]/members/[memberId]/upi.ts", _page3],
+	["src/pages/api/trips/[id]/members/[memberId].ts", _page4],
+	["src/pages/api/trips/[id]/members.ts", _page5],
+	["src/pages/api/trips/[id]/settlement.ts", _page6],
+	["src/pages/api/trips/[id].ts", _page7],
+	["src/pages/api/trips/index.ts", _page8],
+	["src/pages/trip/new.astro", _page9],
+	["src/pages/trip/[code]/expense/new.astro", _page10],
+	["src/pages/trip/[code]/expense/[expenseId]/edit.astro", _page11],
+	["src/pages/trip/[code]/history.astro", _page12],
+	["src/pages/trip/[code]/join.astro", _page13],
+	["src/pages/trip/[code]/members.astro", _page14],
+	["src/pages/trip/[code]/settlement.astro", _page15],
+	["src/pages/trip/[code].astro", _page16],
+	["src/pages/index.astro", _page17]
+]);
 //#endregion
 //#region \0virtual:astro:manifest
-var _manifest = deserializeManifest({"rootDir":"file:///D:/project/SplitYaar/","cacheDir":"file:///D:/project/SplitYaar/node_modules/.astro/","outDir":"file:///D:/project/SplitYaar/dist/","srcDir":"file:///D:/project/SplitYaar/src/","publicDir":"file:///D:/project/SplitYaar/public/","buildClientDir":"file:///D:/project/SplitYaar/dist/client/","buildServerDir":"file:///D:/project/SplitYaar/dist/server/","adapterName":"@astrojs/vercel","assetsDir":"_astro","routes":[{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"type":"page","component":"_server-islands.astro","params":["name"],"segments":[[{"content":"_server-islands","dynamic":false,"spread":false}],[{"content":"name","dynamic":true,"spread":false}]],"pattern":"^\\/_server-islands\\/([^/]+?)\\/?$","prerender":false,"isIndex":false,"fallbackRoutes":[],"route":"/_server-islands/[name]","origin":"internal","distURL":[],"_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/_image","component":"node_modules/astro/dist/assets/endpoint/generic.js","params":[],"pathname":"/_image","pattern":"^\\/_image\\/?$","segments":[[{"content":"_image","dynamic":false,"spread":false}]],"type":"endpoint","prerender":false,"fallbackRoutes":[],"distURL":[],"isIndex":false,"origin":"internal","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[{"type":"external","src":"_astro/index.Dj11WnX4.css"}],"routeData":{"route":"/","isIndex":true,"type":"page","pattern":"^\\/$","segments":[],"params":[],"component":"src/pages/index.astro","pathname":"/","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}}],"serverLike":true,"middlewareMode":"classic","base":"/","trailingSlash":"ignore","compressHTML":"jsx","componentMetadata":[["D:/project/SplitYaar/src/pages/index.astro",{"propagation":"none","containsHead":true}]],"renderers":[],"clientDirectives":[["idle","(()=>{var l=(n,t)=>{let i=async()=>{await(await n())()},e=typeof t.value==\"object\"?t.value:void 0,s={timeout:e==null?void 0:e.timeout};\"requestIdleCallback\"in window?window.requestIdleCallback(i,s):setTimeout(i,s.timeout||200)};(self.Astro||(self.Astro={})).idle=l;window.dispatchEvent(new Event(\"astro:idle\"));})();"],["load","(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).load=e;window.dispatchEvent(new Event(\"astro:load\"));})();"],["media","(()=>{var n=(a,t)=>{let i=async()=>{await(await a())()};if(t.value){let e=matchMedia(t.value);e.matches?i():e.addEventListener(\"change\",i,{once:!0})}};(self.Astro||(self.Astro={})).media=n;window.dispatchEvent(new Event(\"astro:media\"));})();"],["only","(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).only=e;window.dispatchEvent(new Event(\"astro:only\"));})();"],["visible","(()=>{var a=(s,i,o)=>{let r=async()=>{await(await s())()},t=typeof i.value==\"object\"?i.value:void 0,c={rootMargin:t==null?void 0:t.rootMargin},n=new IntersectionObserver(e=>{for(let l of e)if(l.isIntersecting){n.disconnect(),r();break}},c);for(let e of o.children)n.observe(e)};(self.Astro||(self.Astro={})).visible=a;window.dispatchEvent(new Event(\"astro:visible\"));})();"]],"entryModules":{"astro/entrypoints/prerender":"prerender-entry.30n80NQc.mjs","\u0000noop-middleware":"virtual_astro_middleware.mjs","\u0000virtual:astro:server-island-manifest":"chunks/_virtual_astro_server-island-manifest_C1Q2srgE.mjs","\u0000virtual:astro:session-driver":"chunks/_virtual_astro_session-driver_C-PI1Pas.mjs","\u0000virtual:astro:actions/noop-entrypoint":"chunks/noop-entrypoint_Z3zFhrGC.mjs","@astrojs/vercel/entrypoint":"entry.mjs","\u0000virtual:astro:page:node_modules/astro/dist/assets/endpoint/generic@_@js":"chunks/generic_Bidgx46K.mjs","\u0000virtual:astro:page:src/pages/index@_@astro":"chunks/index_Brge4NBD.mjs","D:/project/SplitYaar/node_modules/astro/dist/assets/services/sharp.js":"chunks/sharp_BoRxVUSa.mjs","D:/project/SplitYaar/src/layouts/Layout.astro?astro&type=script&index=0&lang.ts":"_astro/Layout.astro_astro_type_script_index_0_lang.B5wNleTg.js","D:/project/SplitYaar/src/pages/index.astro?astro&type=script&index=0&lang.ts":"_astro/index.astro_astro_type_script_index_0_lang.DlvoVy9G.js","astro:scripts/before-hydration.js":""},"inlinedScripts":[["D:/project/SplitYaar/src/layouts/Layout.astro?astro&type=script&index=0&lang.ts","function e(){let e=document.getElementById(`nav-trips-list`);if(e)try{let t=JSON.parse(localStorage.getItem(`split_yatra_trips`)||`[]`);if(t.length===0){e.innerHTML=`<li class=\"px-xs py-[4px] text-body-muted italic\">No active trips</li>`;return}e.innerHTML=t.map(e=>`\n            <li>\n              <a href=\"/trip/${e.code}\" class=\"block px-xs py-[6px] hover:bg-primary hover:text-white rounded-xs transition-colors truncate max-w-full\">\n                ${e.name}\n              </a>\n            </li>\n          `).join(``)}catch(e){console.error(`Failed to parse local trips`,e)}}var t=document.getElementById(`nav-trips-btn`),n=document.getElementById(`nav-trips-dropdown`);t&&n&&(t.addEventListener(`click`,t=>{t.stopPropagation(),n.classList.toggle(`hidden`),e()}),document.addEventListener(`click`,()=>{n.classList.add(`hidden`)}));"],["D:/project/SplitYaar/src/pages/index.astro?astro&type=script&index=0&lang.ts","var e=document.getElementById(`join-trip-btn`),t=document.getElementById(`join-form-container`),n=document.getElementById(`join-trip-form`),r=document.getElementById(`trip-code`),i=document.getElementById(`join-error`);e&&t&&e.addEventListener(`click`,()=>{t.classList.toggle(`hidden`),!t.classList.contains(`hidden`)&&r&&(r.focus(),t.scrollIntoView({behavior:`smooth`,block:`center`}))}),n&&r&&i&&n.addEventListener(`submit`,e=>{e.preventDefault();let t=r.value.trim().toUpperCase();if(t.length!==8){i.textContent=`Please enter a valid 8-character code.`,i.classList.remove(`hidden`);return}window.location.href=`/trip/${t}`});"]],"assets":["/favicon.ico","/favicon.svg","/_astro/index.Dj11WnX4.css"],"buildFormat":"directory","checkOrigin":true,"actionBodySizeLimit":1048576,"serverIslandBodySizeLimit":1048576,"allowedDomains":[],"key":"PO02iy34qiOSBeF5qqvDBs1c3o/4zVR4lvvRF43e348=","image":{},"devToolbar":{"enabled":false,"debugInfoOutput":""},"logLevel":"info","shouldInjectCspMetaTags":false});
+var _manifest = deserializeManifest({"rootDir":"file:///D:/project/SplitYaar/","cacheDir":"file:///D:/project/SplitYaar/node_modules/.astro/","outDir":"file:///D:/project/SplitYaar/dist/","srcDir":"file:///D:/project/SplitYaar/src/","publicDir":"file:///D:/project/SplitYaar/public/","buildClientDir":"file:///D:/project/SplitYaar/dist/client/","buildServerDir":"file:///D:/project/SplitYaar/dist/server/","adapterName":"@astrojs/vercel","assetsDir":"_astro","routes":[{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"type":"page","component":"_server-islands.astro","params":["name"],"segments":[[{"content":"_server-islands","dynamic":false,"spread":false}],[{"content":"name","dynamic":true,"spread":false}]],"pattern":"^\\/_server-islands\\/([^/]+?)\\/?$","prerender":false,"isIndex":false,"fallbackRoutes":[],"route":"/_server-islands/[name]","origin":"internal","distURL":[],"_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/_image","component":"node_modules/astro/dist/assets/endpoint/generic.js","params":[],"pathname":"/_image","pattern":"^\\/_image\\/?$","segments":[[{"content":"_image","dynamic":false,"spread":false}]],"type":"endpoint","prerender":false,"fallbackRoutes":[],"distURL":[],"isIndex":false,"origin":"internal","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/api/trips/[id]/expenses/[expenseId]","isIndex":false,"type":"endpoint","pattern":"^\\/api\\/trips\\/([^/]+?)\\/expenses\\/([^/]+?)\\/?$","segments":[[{"content":"api","dynamic":false,"spread":false}],[{"content":"trips","dynamic":false,"spread":false}],[{"content":"id","dynamic":true,"spread":false}],[{"content":"expenses","dynamic":false,"spread":false}],[{"content":"expenseId","dynamic":true,"spread":false}]],"params":["id","expenseId"],"component":"src/pages/api/trips/[id]/expenses/[expenseId].ts","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/api/trips/[id]/expenses","isIndex":false,"type":"endpoint","pattern":"^\\/api\\/trips\\/([^/]+?)\\/expenses\\/?$","segments":[[{"content":"api","dynamic":false,"spread":false}],[{"content":"trips","dynamic":false,"spread":false}],[{"content":"id","dynamic":true,"spread":false}],[{"content":"expenses","dynamic":false,"spread":false}]],"params":["id"],"component":"src/pages/api/trips/[id]/expenses.ts","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/api/trips/[id]/members/[memberId]/upi","isIndex":false,"type":"endpoint","pattern":"^\\/api\\/trips\\/([^/]+?)\\/members\\/([^/]+?)\\/upi\\/?$","segments":[[{"content":"api","dynamic":false,"spread":false}],[{"content":"trips","dynamic":false,"spread":false}],[{"content":"id","dynamic":true,"spread":false}],[{"content":"members","dynamic":false,"spread":false}],[{"content":"memberId","dynamic":true,"spread":false}],[{"content":"upi","dynamic":false,"spread":false}]],"params":["id","memberId"],"component":"src/pages/api/trips/[id]/members/[memberId]/upi.ts","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/api/trips/[id]/members/[memberId]","isIndex":false,"type":"endpoint","pattern":"^\\/api\\/trips\\/([^/]+?)\\/members\\/([^/]+?)\\/?$","segments":[[{"content":"api","dynamic":false,"spread":false}],[{"content":"trips","dynamic":false,"spread":false}],[{"content":"id","dynamic":true,"spread":false}],[{"content":"members","dynamic":false,"spread":false}],[{"content":"memberId","dynamic":true,"spread":false}]],"params":["id","memberId"],"component":"src/pages/api/trips/[id]/members/[memberId].ts","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/api/trips/[id]/members","isIndex":false,"type":"endpoint","pattern":"^\\/api\\/trips\\/([^/]+?)\\/members\\/?$","segments":[[{"content":"api","dynamic":false,"spread":false}],[{"content":"trips","dynamic":false,"spread":false}],[{"content":"id","dynamic":true,"spread":false}],[{"content":"members","dynamic":false,"spread":false}]],"params":["id"],"component":"src/pages/api/trips/[id]/members.ts","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/api/trips/[id]/settlement","isIndex":false,"type":"endpoint","pattern":"^\\/api\\/trips\\/([^/]+?)\\/settlement\\/?$","segments":[[{"content":"api","dynamic":false,"spread":false}],[{"content":"trips","dynamic":false,"spread":false}],[{"content":"id","dynamic":true,"spread":false}],[{"content":"settlement","dynamic":false,"spread":false}]],"params":["id"],"component":"src/pages/api/trips/[id]/settlement.ts","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/api/trips/[id]","isIndex":false,"type":"endpoint","pattern":"^\\/api\\/trips\\/([^/]+?)\\/?$","segments":[[{"content":"api","dynamic":false,"spread":false}],[{"content":"trips","dynamic":false,"spread":false}],[{"content":"id","dynamic":true,"spread":false}]],"params":["id"],"component":"src/pages/api/trips/[id].ts","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[],"routeData":{"route":"/api/trips","isIndex":true,"type":"endpoint","pattern":"^\\/api\\/trips\\/?$","segments":[[{"content":"api","dynamic":false,"spread":false}],[{"content":"trips","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/api/trips/index.ts","pathname":"/api/trips","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[{"type":"external","src":"_astro/Layout.CwEClm2k.css"}],"routeData":{"route":"/trip/new","isIndex":false,"type":"page","pattern":"^\\/trip\\/new\\/?$","segments":[[{"content":"trip","dynamic":false,"spread":false}],[{"content":"new","dynamic":false,"spread":false}]],"params":[],"component":"src/pages/trip/new.astro","pathname":"/trip/new","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[{"type":"external","src":"_astro/Layout.CwEClm2k.css"}],"routeData":{"route":"/trip/[code]/expense/new","isIndex":false,"type":"page","pattern":"^\\/trip\\/([^/]+?)\\/expense\\/new\\/?$","segments":[[{"content":"trip","dynamic":false,"spread":false}],[{"content":"code","dynamic":true,"spread":false}],[{"content":"expense","dynamic":false,"spread":false}],[{"content":"new","dynamic":false,"spread":false}]],"params":["code"],"component":"src/pages/trip/[code]/expense/new.astro","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[{"type":"external","src":"_astro/Layout.CwEClm2k.css"}],"routeData":{"route":"/trip/[code]/expense/[expenseId]/edit","isIndex":false,"type":"page","pattern":"^\\/trip\\/([^/]+?)\\/expense\\/([^/]+?)\\/edit\\/?$","segments":[[{"content":"trip","dynamic":false,"spread":false}],[{"content":"code","dynamic":true,"spread":false}],[{"content":"expense","dynamic":false,"spread":false}],[{"content":"expenseId","dynamic":true,"spread":false}],[{"content":"edit","dynamic":false,"spread":false}]],"params":["code","expenseId"],"component":"src/pages/trip/[code]/expense/[expenseId]/edit.astro","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[{"type":"external","src":"_astro/Layout.CwEClm2k.css"}],"routeData":{"route":"/trip/[code]/history","isIndex":false,"type":"page","pattern":"^\\/trip\\/([^/]+?)\\/history\\/?$","segments":[[{"content":"trip","dynamic":false,"spread":false}],[{"content":"code","dynamic":true,"spread":false}],[{"content":"history","dynamic":false,"spread":false}]],"params":["code"],"component":"src/pages/trip/[code]/history.astro","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[{"type":"external","src":"_astro/Layout.CwEClm2k.css"}],"routeData":{"route":"/trip/[code]/join","isIndex":false,"type":"page","pattern":"^\\/trip\\/([^/]+?)\\/join\\/?$","segments":[[{"content":"trip","dynamic":false,"spread":false}],[{"content":"code","dynamic":true,"spread":false}],[{"content":"join","dynamic":false,"spread":false}]],"params":["code"],"component":"src/pages/trip/[code]/join.astro","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[{"type":"external","src":"_astro/Layout.CwEClm2k.css"}],"routeData":{"route":"/trip/[code]/members","isIndex":false,"type":"page","pattern":"^\\/trip\\/([^/]+?)\\/members\\/?$","segments":[[{"content":"trip","dynamic":false,"spread":false}],[{"content":"code","dynamic":true,"spread":false}],[{"content":"members","dynamic":false,"spread":false}]],"params":["code"],"component":"src/pages/trip/[code]/members.astro","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[{"type":"external","src":"_astro/Layout.CwEClm2k.css"}],"routeData":{"route":"/trip/[code]/settlement","isIndex":false,"type":"page","pattern":"^\\/trip\\/([^/]+?)\\/settlement\\/?$","segments":[[{"content":"trip","dynamic":false,"spread":false}],[{"content":"code","dynamic":true,"spread":false}],[{"content":"settlement","dynamic":false,"spread":false}]],"params":["code"],"component":"src/pages/trip/[code]/settlement.astro","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[{"type":"external","src":"_astro/Layout.CwEClm2k.css"}],"routeData":{"route":"/trip/[code]","isIndex":false,"type":"page","pattern":"^\\/trip\\/([^/]+?)\\/?$","segments":[[{"content":"trip","dynamic":false,"spread":false}],[{"content":"code","dynamic":true,"spread":false}]],"params":["code"],"component":"src/pages/trip/[code].astro","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}},{"file":"","links":[],"scripts":[],"styles":[{"type":"external","src":"_astro/Layout.CwEClm2k.css"}],"routeData":{"route":"/","isIndex":true,"type":"page","pattern":"^\\/$","segments":[],"params":[],"component":"src/pages/index.astro","pathname":"/","prerender":false,"fallbackRoutes":[],"distURL":[],"origin":"project","_meta":{"trailingSlash":"ignore"}}}],"serverLike":true,"middlewareMode":"classic","base":"/","trailingSlash":"ignore","compressHTML":"jsx","componentMetadata":[["D:/project/SplitYaar/src/pages/index.astro",{"propagation":"none","containsHead":true}],["D:/project/SplitYaar/src/pages/trip/[code].astro",{"propagation":"none","containsHead":true}],["D:/project/SplitYaar/src/pages/trip/[code]/expense/[expenseId]/edit.astro",{"propagation":"none","containsHead":true}],["D:/project/SplitYaar/src/pages/trip/[code]/expense/new.astro",{"propagation":"none","containsHead":true}],["D:/project/SplitYaar/src/pages/trip/[code]/history.astro",{"propagation":"none","containsHead":true}],["D:/project/SplitYaar/src/pages/trip/[code]/join.astro",{"propagation":"none","containsHead":true}],["D:/project/SplitYaar/src/pages/trip/[code]/members.astro",{"propagation":"none","containsHead":true}],["D:/project/SplitYaar/src/pages/trip/[code]/settlement.astro",{"propagation":"none","containsHead":true}],["D:/project/SplitYaar/src/pages/trip/new.astro",{"propagation":"none","containsHead":true}]],"renderers":[],"clientDirectives":[["idle","(()=>{var l=(n,t)=>{let i=async()=>{await(await n())()},e=typeof t.value==\"object\"?t.value:void 0,s={timeout:e==null?void 0:e.timeout};\"requestIdleCallback\"in window?window.requestIdleCallback(i,s):setTimeout(i,s.timeout||200)};(self.Astro||(self.Astro={})).idle=l;window.dispatchEvent(new Event(\"astro:idle\"));})();"],["load","(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).load=e;window.dispatchEvent(new Event(\"astro:load\"));})();"],["media","(()=>{var n=(a,t)=>{let i=async()=>{await(await a())()};if(t.value){let e=matchMedia(t.value);e.matches?i():e.addEventListener(\"change\",i,{once:!0})}};(self.Astro||(self.Astro={})).media=n;window.dispatchEvent(new Event(\"astro:media\"));})();"],["only","(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).only=e;window.dispatchEvent(new Event(\"astro:only\"));})();"],["visible","(()=>{var a=(s,i,o)=>{let r=async()=>{await(await s())()},t=typeof i.value==\"object\"?i.value:void 0,c={rootMargin:t==null?void 0:t.rootMargin},n=new IntersectionObserver(e=>{for(let l of e)if(l.isIntersecting){n.disconnect(),r();break}},c);for(let e of o.children)n.observe(e)};(self.Astro||(self.Astro={})).visible=a;window.dispatchEvent(new Event(\"astro:visible\"));})();"]],"entryModules":{"astro/entrypoints/prerender":"prerender-entry.30n80NQc.mjs","\u0000noop-middleware":"virtual_astro_middleware.mjs","\u0000virtual:astro:server-island-manifest":"chunks/_virtual_astro_server-island-manifest_C1Q2srgE.mjs","\u0000virtual:astro:session-driver":"chunks/_virtual_astro_session-driver_C-PI1Pas.mjs","\u0000virtual:astro:actions/noop-entrypoint":"chunks/noop-entrypoint_Z3zFhrGC.mjs","@astrojs/vercel/entrypoint":"entry.mjs","\u0000virtual:astro:page:src/pages/trip/[code]@_@astro":"chunks/_code__9WP1b9Em.mjs","\u0000virtual:astro:page:src/pages/api/trips/[id]/expenses/[expenseId]@_@ts":"chunks/_expenseId__A7UvMbN5.mjs","\u0000virtual:astro:page:src/pages/api/trips/[id]@_@ts":"chunks/_id__DY5KiTqP.mjs","\u0000virtual:astro:page:src/pages/api/trips/[id]/members/[memberId]@_@ts":"chunks/_memberId__DCgB0ZfF.mjs","\u0000virtual:astro:page:src/pages/trip/[code]/expense/[expenseId]/edit@_@astro":"chunks/edit_TphahRwl.mjs","\u0000virtual:astro:page:src/pages/api/trips/[id]/expenses@_@ts":"chunks/expenses_WLG__PV9.mjs","\u0000virtual:astro:page:node_modules/astro/dist/assets/endpoint/generic@_@js":"chunks/generic_Da8RpRCb.mjs","\u0000virtual:astro:page:src/pages/trip/[code]/history@_@astro":"chunks/history_8ucsY8Of.mjs","\u0000virtual:astro:page:src/pages/index@_@astro":"chunks/index_CEyP46cZ.mjs","\u0000virtual:astro:page:src/pages/api/trips/index@_@ts":"chunks/index_CSFvzn7h.mjs","\u0000virtual:astro:page:src/pages/trip/[code]/join@_@astro":"chunks/join_B1Yy--i_.mjs","\u0000virtual:astro:page:src/pages/api/trips/[id]/members@_@ts":"chunks/members_D4s99nrs.mjs","\u0000virtual:astro:page:src/pages/trip/[code]/members@_@astro":"chunks/members_M0qRWgMz.mjs","\u0000virtual:astro:page:src/pages/trip/new@_@astro":"chunks/new_Cbnuztie.mjs","\u0000virtual:astro:page:src/pages/trip/[code]/expense/new@_@astro":"chunks/new_D_UxjqE-.mjs","\u0000virtual:astro:page:src/pages/api/trips/[id]/settlement@_@ts":"chunks/settlement_Bo2uMdpu.mjs","\u0000virtual:astro:page:src/pages/trip/[code]/settlement@_@astro":"chunks/settlement_DFXbe12D.mjs","D:/project/SplitYaar/node_modules/astro/dist/assets/services/sharp.js":"chunks/sharp_BoRxVUSa.mjs","\u0000virtual:astro:page:src/pages/api/trips/[id]/members/[memberId]/upi@_@ts":"chunks/upi_Bqjujn6J.mjs","D:/project/SplitYaar/src/layouts/Layout.astro?astro&type=script&index=0&lang.ts":"_astro/Layout.astro_astro_type_script_index_0_lang.B5wNleTg.js","D:/project/SplitYaar/src/pages/trip/[code]/history.astro?astro&type=script&index=0&lang.ts":"_astro/history.astro_astro_type_script_index_0_lang.DG_ujWDX.js","D:/project/SplitYaar/src/pages/index.astro?astro&type=script&index=0&lang.ts":"_astro/index.astro_astro_type_script_index_0_lang.DlvoVy9G.js","D:/project/SplitYaar/src/pages/trip/new.astro?astro&type=script&index=0&lang.ts":"_astro/new.astro_astro_type_script_index_0_lang.DzWVZCbq.js","D:/project/SplitYaar/src/pages/trip/[code]/settlement.astro?astro&type=script&index=0&lang.ts":"_astro/settlement.astro_astro_type_script_index_0_lang.DsVLVyuu.js","astro:scripts/before-hydration.js":""},"inlinedScripts":[["D:/project/SplitYaar/src/layouts/Layout.astro?astro&type=script&index=0&lang.ts","function e(){let e=document.getElementById(`nav-trips-list`);if(e)try{let t=JSON.parse(localStorage.getItem(`split_yatra_trips`)||`[]`);if(t.length===0){e.innerHTML=`<li class=\"px-xs py-[4px] text-body-muted italic\">No active trips</li>`;return}e.innerHTML=t.map(e=>`\n            <li>\n              <a href=\"/trip/${e.code}\" class=\"block px-xs py-[6px] hover:bg-primary hover:text-white rounded-xs transition-colors truncate max-w-full\">\n                ${e.name}\n              </a>\n            </li>\n          `).join(``)}catch(e){console.error(`Failed to parse local trips`,e)}}var t=document.getElementById(`nav-trips-btn`),n=document.getElementById(`nav-trips-dropdown`);t&&n&&(t.addEventListener(`click`,t=>{t.stopPropagation(),n.classList.toggle(`hidden`),e()}),document.addEventListener(`click`,()=>{n.classList.add(`hidden`)}));"],["D:/project/SplitYaar/src/pages/trip/[code]/history.astro?astro&type=script&index=0&lang.ts","var e=document.getElementById(`expense-log-list`);e&&e.addEventListener(`click`,e=>{let t=e.target;if(t.closest(`a`)||t.closest(`button`))return;let n=t.closest(`.expense-item-row`);if(!n)return;let r=n.querySelector(`.expandable-details`),i=n.querySelector(`.caret-icon`);r&&i&&(r.classList.contains(`hidden`)?(r.classList.remove(`hidden`),i.classList.add(`rotate-180`)):(r.classList.add(`hidden`),i.classList.remove(`rotate-180`)))});var t=document.getElementById(`filter-category`),n=document.getElementById(`filter-payer`);function r(){if(!t||!n)return;let e=t.value,r=n.value,i=document.querySelectorAll(`.expense-item-row`),a=0;i.forEach(t=>{let n=t.getAttribute(`data-category`),i=t.getAttribute(`data-payer-id`);(e===`all`||n===e)&&(r===`all`||i===r)?(t.style.display=`flex`,a++):t.style.display=`none`});let o=document.querySelector(`.bg-white.text-center`);o&&(a===0?o.style.display=`block`:o.style.display=`none`)}t&&t.addEventListener(`change`,r),n&&n.addEventListener(`change`,r);"],["D:/project/SplitYaar/src/pages/index.astro?astro&type=script&index=0&lang.ts","var e=document.getElementById(`join-trip-btn`),t=document.getElementById(`join-form-container`),n=document.getElementById(`join-trip-form`),r=document.getElementById(`trip-code`),i=document.getElementById(`join-error`);e&&t&&e.addEventListener(`click`,()=>{t.classList.toggle(`hidden`),!t.classList.contains(`hidden`)&&r&&(r.focus(),t.scrollIntoView({behavior:`smooth`,block:`center`}))}),n&&r&&i&&n.addEventListener(`submit`,e=>{e.preventDefault();let t=r.value.trim().toUpperCase();if(t.length!==8){i.textContent=`Please enter a valid 8-character code.`,i.classList.remove(`hidden`);return}window.location.href=`/trip/${t}`});"],["D:/project/SplitYaar/src/pages/trip/new.astro?astro&type=script&index=0&lang.ts","var e=document.getElementById(`create-trip-form`),t=document.getElementById(`error-msg`),n=document.getElementById(`submit-btn`);e&&t&&n&&e.addEventListener(`submit`,async r=>{r.preventDefault(),n.disabled=!0,n.textContent=`Creating...`,t.classList.add(`hidden`);let i=new FormData(e),a=i.get(`name`)?.toString().trim(),o=i.get(`creatorName`)?.toString().trim();try{let e=await fetch(`/api/trips`,{method:`POST`,headers:{\"Content-Type\":`application/json`},body:JSON.stringify({name:a,creatorName:o})}),t=await e.json();if(!e.ok)throw Error(t.error||`Failed to create trip`);let{trip:n}=t;localStorage.setItem(`split_yatra_member_${n.code}`,n.createdByMemberId);let r=JSON.parse(localStorage.getItem(`split_yatra_trips`)||`[]`);r.some(e=>e.code===n.code)||(r.push({code:n.code,name:n.name}),localStorage.setItem(`split_yatra_trips`,JSON.stringify(r))),window.location.href=`/trip/${n.code}`}catch(e){n.disabled=!1,n.textContent=`Create Trip`,t.textContent=e.message||`An unexpected error occurred`,t.classList.remove(`hidden`)}});"],["D:/project/SplitYaar/src/pages/trip/[code]/settlement.astro?astro&type=script&index=0&lang.ts","document.addEventListener(`change`,e=>{let t=e.target;if(t&&t.classList.contains(`settle-checklist-cb`)){let e=t.closest(`.settlement-row`),n=e?.querySelector(`.checkbox-label`);e&&n&&(t.checked?(e.classList.add(`opacity-50`,`line-through`),n.textContent=`Settled`,n.classList.replace(`text-ink-muted-48`,`text-green-600`)):(e.classList.remove(`opacity-50`,`line-through`),n.textContent=`Paid`,n.classList.replace(`text-green-600`,`text-ink-muted-48`)))}});var e=document.getElementById(`qr-modal`),t=document.getElementById(`modal-qr-img`),n=document.getElementById(`modal-payee-title`),r=document.getElementById(`modal-amount-title`),i=document.getElementById(`close-modal-btn`);function a(){return/Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent)}document.addEventListener(`click`,i=>{let o=i.target.closest(`.pay-btn`);if(!o)return;let s=o.getAttribute(`data-upi-link`)||``,c=o.getAttribute(`data-qr-url`)||``,l=o.getAttribute(`data-payee`)||``,u=o.getAttribute(`data-amount`)||``;a()?window.location.href=s:e&&t&&n&&r&&(t.src=c,n.textContent=`Pay ${l}`,r.textContent=`Amount: ${u}`,e.classList.remove(`hidden`))}),i&&e&&(i.addEventListener(`click`,()=>{e.classList.add(`hidden`)}),e.addEventListener(`click`,t=>{t.target===e&&e.classList.add(`hidden`)})),document.addEventListener(`click`,e=>{let t=e.target.closest(`.nudge-btn`);if(!t)return;let n=t.getAttribute(`data-payee-name`)||``,r=encodeURIComponent(`Hey ${n}! Please add your UPI ID on SplitYatra so I can settle our trip debts: ${window.location.href}`);window.open(`https://api.whatsapp.com/send?text=${r}`,`_blank`)});"]],"assets":["/favicon.ico","/favicon.svg","/_astro/Layout.CwEClm2k.css"],"buildFormat":"directory","checkOrigin":true,"actionBodySizeLimit":1048576,"serverIslandBodySizeLimit":1048576,"allowedDomains":[],"key":"SjS9xsUxwM5PXZtE5/7uZ5myUfwzKjZCCKPi6Xso3TY=","image":{},"devToolbar":{"enabled":false,"debugInfoOutput":""},"logLevel":"info","shouldInjectCspMetaTags":false});
 var manifestRoutes = _manifest.routes;
 var manifest = Object.assign(_manifest, {
 	renderers,
@@ -5198,7 +5852,7 @@ var entrypoint_default = { async fetch(request) {
 	const hasValidMiddlewareSecret = request.headers.get(ASTRO_MIDDLEWARE_SECRET_HEADER) === middlewareSecret;
 	let realPath = void 0;
 	if (hasValidMiddlewareSecret) realPath = request.headers.get(ASTRO_PATH_HEADER);
-	else if (url.searchParams.get("x_astro_path_token") === "3d12d8d7-7ee8-4612-a8b8-8e578a3239fa") realPath = url.searchParams.get(ASTRO_PATH_PARAM);
+	else if (url.searchParams.get("x_astro_path_token") === "138a075f-ecc0-4453-b77f-187290cea45b") realPath = url.searchParams.get(ASTRO_PATH_PARAM);
 	if (typeof realPath === "string") {
 		url.pathname = realPath;
 		url.searchParams.delete(ASTRO_PATH_PARAM);

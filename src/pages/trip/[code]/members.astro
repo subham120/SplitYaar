@@ -1,0 +1,307 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SubNav from '../../../components/SubNav.astro';
+import { getTripByCode } from '../../../lib/store';
+import { formatINR } from '../../../lib/format';
+import { computeNetBalances } from '../../../lib/settlement';
+
+const { code } = Astro.params;
+
+if (!code) {
+  return Astro.redirect('/');
+}
+
+const tripData = await getTripByCode(code);
+if (!tripData) {
+  return Astro.redirect('/');
+}
+
+const { trip, members, expenses, shares } = tripData;
+const netBalances = computeNetBalances(members, expenses, shares);
+---
+
+<Layout title={`Manage Members — ${trip.name}`} noindex={true}>
+  <!-- Identity Redirect Script (run immediately to block FOUC) -->
+  <script define:vars={{ code }}>
+    if (!localStorage.getItem(`split_yatra_member_${code}`)) {
+      window.location.replace(`/trip/${code}/join`);
+    }
+  </script>
+
+  <!-- Frosted SubNav -->
+  <SubNav code={code} activeTab="members" tripName={trip.name} />
+
+  <div class="bg-canvas-parchment min-h-[90vh] pb-[60px] pt-lg px-lg">
+    <div class="max-w-[1440px] w-full mx-auto grid grid-cols-1 lg:grid-cols-3 gap-lg">
+      
+      <!-- Left 2 Columns: Members List & UPI configuration -->
+      <div class="lg:col-span-2 space-y-md">
+        <!-- Error Alert box -->
+        <div id="members-alert-box" class="hidden bg-red-50 border border-red-200 rounded-md p-md text-caption text-red-600 animate-fadeIn">
+        </div>
+
+        <div class="bg-white border border-hairline rounded-lg p-lg shadow-sm">
+          <h2 class="text-body-strong font-semibold text-ink mb-lg">Group Members</h2>
+          
+          <div class="space-y-lg" id="members-list-container">
+            {members.map((m) => {
+              const mBal = netBalances.find((b) => b.memberId === m.id);
+              const balancePaise = mBal ? mBal.netBalancePaise : 0;
+              
+              let balText = 'Settled up';
+              let balClass = 'text-ink-muted-48';
+              if (balancePaise > 0) {
+                balText = `Owed: ${formatINR(balancePaise)}`;
+                balClass = 'text-green-600 font-semibold';
+              } else if (balancePaise < 0) {
+                balText = `Owes: ${formatINR(Math.abs(balancePaise))}`;
+                balClass = 'text-red-500 font-semibold';
+              }
+
+              return (
+                <div 
+                  class="member-management-row flex flex-col md:flex-row md:items-center justify-between gap-md border-b border-divider-soft pb-lg last:border-0 last:pb-0"
+                  data-member-id={m.id}
+                  data-member-name={m.name}
+                >
+                  <!-- Member Name & Net Balance Status -->
+                  <div class="truncate">
+                    <span class="text-body-strong text-ink font-semibold flex items-center gap-xs">
+                      <span class="truncate">{m.name}</span>
+                      <span class="member-you-badge hidden text-fine-print bg-primary text-white px-xs py-[2px] rounded-xs text-[10px]">You</span>
+                    </span>
+                    <span class={`text-caption block mt-[2px] ${balClass}`}>
+                      {balText}
+                    </span>
+                  </div>
+
+                  <!-- UPI Input and Action Options -->
+                  <div class="flex items-center gap-md w-full md:w-auto">
+                    <!-- UPI Form -->
+                    <div class="flex items-center gap-xs flex-grow md:flex-grow-0">
+                      <div class="relative flex-grow max-w-xs">
+                        <span class="absolute left-md top-1/2 -translate-y-1/2 text-fine-print text-ink-muted-48">upi:</span>
+                        <input
+                          type="text"
+                          value={m.upiId || ''}
+                          placeholder="username@bank"
+                          class="upi-input-field w-full bg-surface-pearl text-ink font-sans text-caption border border-hairline rounded-pill pl-[34px] pr-xs py-[6px] focus:outline-none focus:border-primary placeholder:text-zinc-300"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        class="save-upi-btn bg-primary text-on-primary text-[12px] font-sans font-medium px-md py-[6px] rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer shrink-0"
+                      >
+                        Save
+                      </button>
+                    </div>
+
+                    <!-- Delete button -->
+                    <button
+                      type="button"
+                      class="remove-member-btn text-caption text-red-500 hover:text-red-700 font-medium select-none cursor-pointer transition-colors active:scale-95 shrink-0"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Add Member Form -->
+      <div>
+        <div class="bg-white border border-hairline rounded-lg p-lg shadow-sm">
+          <h2 class="text-body-strong font-semibold text-ink mb-md">Add Member</h2>
+          <form id="add-member-form" class="space-y-md">
+            <div>
+              <label for="new-member-name" class="block text-caption-strong text-ink font-semibold mb-xxs">Name</label>
+              <input
+                type="text"
+                id="new-member-name"
+                name="name"
+                placeholder="e.g. Sneha"
+                required
+                maxlength="30"
+                class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[9px] focus:outline-none focus:border-primary placeholder:text-zinc-300"
+              />
+            </div>
+            <div>
+              <label for="new-member-upi" class="block text-caption-strong text-ink font-semibold mb-xxs">UPI ID (Optional)</label>
+              <input
+                type="text"
+                id="new-member-upi"
+                name="upiId"
+                placeholder="e.g. sneha@okhdfcbank"
+                class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[9px] focus:outline-none focus:border-primary placeholder:text-zinc-300"
+              />
+            </div>
+            <button
+              type="submit"
+              id="add-btn"
+              class="w-full bg-primary text-on-primary font-sans font-medium text-body py-[10px] rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer text-center"
+            >
+              Add Member
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script define:vars={{ code }}>
+    const currentMemberId = localStorage.getItem(`split_yatra_member_${code}`);
+    const alertBox = document.getElementById('members-alert-box');
+    const addForm = document.getElementById('add-member-form');
+    const addBtn = document.getElementById('add-btn');
+    const membersList = document.getElementById('members-list-container');
+
+    // Show alert helper
+    function showAlert(text) {
+      if (!alertBox) return;
+      alertBox.textContent = text;
+      alertBox.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Hide alert helper
+    function hideAlert() {
+      if (alertBox) alertBox.classList.add('hidden');
+    }
+
+    // Tag the active 'You' user row
+    if (currentMemberId) {
+      const rows = document.querySelectorAll('.member-management-row');
+      rows.forEach((row) => {
+        if (row.getAttribute('data-member-id') === currentMemberId) {
+          const badge = row.querySelector('.member-you-badge');
+          if (badge) badge.classList.remove('hidden');
+        }
+      });
+    }
+
+    // Trigger Add Member Submit
+    if (addForm && addBtn) {
+      addForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
+        addBtn.disabled = true;
+        addBtn.textContent = 'Adding...';
+
+        const nameInput = document.getElementById('new-member-name');
+        const upiInput = document.getElementById('new-member-upi');
+        const name = nameInput ? nameInput.value.trim() : '';
+        const upiId = upiInput ? upiInput.value.trim() : '';
+
+        try {
+          const res = await fetch(`/api/trips/${code}/members`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, upiId: upiId || null }),
+          });
+
+          const result = await res.json();
+          if (!res.ok) {
+            throw new Error(result.error || 'Failed to add member');
+          }
+
+          // Reload page to reflect changes
+          window.location.reload();
+        } catch (error) {
+          addBtn.disabled = false;
+          addBtn.textContent = 'Add Member';
+          showAlert(error.message);
+        }
+      });
+    }
+
+    // Dynamic Row click actions (Save UPI or Delete Member)
+    if (membersList) {
+      membersList.addEventListener('click', async (e) => {
+        const target = e.target;
+        
+        // 1. Check Save UPI Click
+        if (target.classList.contains('save-upi-btn')) {
+          hideAlert();
+          const row = target.closest('.member-management-row');
+          if (!row) return;
+          const memberId = row.getAttribute('data-member-id');
+          const input = row.querySelector('.upi-input-field');
+          const upiId = input ? input.value.trim() : '';
+
+          target.disabled = true;
+          target.textContent = 'Saving';
+
+          try {
+            const res = await fetch(`/api/trips/${code}/members/${memberId}/upi`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ upiId: upiId || null })
+            });
+
+            const result = await res.json();
+            if (!res.ok) {
+              throw new Error(result.error || 'Failed to save UPI ID');
+            }
+
+            // Success feedback
+            target.textContent = 'Saved!';
+            target.className = "save-upi-btn bg-green-600 text-white text-[12px] font-sans font-medium px-md py-[6px] rounded-pill select-none shrink-0";
+            setTimeout(() => {
+              target.disabled = false;
+              target.textContent = 'Save';
+              target.className = "save-upi-btn bg-primary text-on-primary text-[12px] font-sans font-medium px-md py-[6px] rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer shrink-0";
+            }, 1500);
+
+          } catch (error) {
+            target.disabled = false;
+            target.textContent = 'Save';
+            showAlert(error.message);
+          }
+        }
+
+        // 2. Check Delete Member Click
+        if (target.classList.contains('remove-member-btn')) {
+          hideAlert();
+          const row = target.closest('.member-management-row');
+          if (!row) return;
+          const memberId = row.getAttribute('data-member-id');
+          const memberName = row.getAttribute('data-member-name');
+
+          const confirmDel = confirm(`Are you sure you want to remove ${memberName} from this trip?`);
+          if (!confirmDel) return;
+
+          target.disabled = true;
+          target.textContent = 'Removing...';
+
+          try {
+            const res = await fetch(`/api/trips/${code}/members/${memberId}`, {
+              method: 'DELETE'
+            });
+
+            const result = await res.json();
+            if (!res.ok) {
+              throw new Error(result.error || 'Failed to remove member');
+            }
+
+            // If deleting oneself, clear local session token and redirect to join
+            if (memberId === currentMemberId) {
+              localStorage.removeItem(`split_yatra_member_${code}`);
+              window.location.replace(`/trip/${code}/join`);
+            } else {
+              window.location.reload();
+            }
+
+          } catch (error) {
+            target.disabled = false;
+            target.textContent = 'Remove';
+            showAlert(error.message);
+          }
+        }
+      });
+    }
+  </script>
+</Layout>

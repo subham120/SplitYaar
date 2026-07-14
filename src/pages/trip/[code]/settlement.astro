@@ -1,0 +1,269 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import SubNav from '../../../components/SubNav.astro';
+import { getTripByCode } from '../../../lib/store';
+import { formatINR } from '../../../lib/format';
+import { computeNetBalances, simplifyDebts } from '../../../lib/settlement';
+import { buildUpiLink, generateQrCodeDataUrl } from '../../../lib/upi';
+
+const { code } = Astro.params;
+
+if (!code) {
+  return Astro.redirect('/');
+}
+
+const tripData = await getTripByCode(code);
+if (!tripData) {
+  return Astro.redirect('/');
+}
+
+const { trip, members, expenses, shares } = tripData;
+const netBalances = computeNetBalances(members, expenses, shares);
+const rawTransactions = simplifyDebts(netBalances);
+
+// Enrich transactions with member details, UPI links, and QR codes
+const transactions = await Promise.all(
+  rawTransactions.map(async (t) => {
+    const fromMember = members.find((m) => m.id === t.fromMemberId)!;
+    const toMember = members.find((m) => m.id === t.toMemberId)!;
+
+    let upiLink = '';
+    let qrDataUrl = '';
+
+    if (toMember.upiId) {
+      upiLink = buildUpiLink(
+        toMember.upiId,
+        toMember.name,
+        t.amountPaise,
+        `Settle up: ${trip.name}`
+      );
+      try {
+        qrDataUrl = await generateQrCodeDataUrl(upiLink);
+      } catch (e) {
+        console.error('QR code generation failed for settlement', e);
+      }
+    }
+
+    return {
+      ...t,
+      fromName: fromMember.name,
+      toName: toMember.name,
+      toUpiId: toMember.upiId,
+      upiLink,
+      qrDataUrl,
+    };
+  })
+);
+---
+
+<Layout title={`Settle Up — ${trip.name}`} noindex={true}>
+  <!-- Identity Redirect Script (run immediately to block FOUC) -->
+  <script define:vars={{ code }}>
+    if (!localStorage.getItem(`split_yatra_member_${code}`)) {
+      window.location.replace(`/trip/${code}/join`);
+    }
+  </script>
+
+  <!-- Frosted SubNav -->
+  <SubNav code={code} activeTab="settlement" tripName={trip.name} />
+
+  <div class="bg-canvas-parchment min-h-[90vh] pb-[60px] pt-lg px-lg">
+    <div class="max-w-[640px] w-full mx-auto space-y-lg">
+      
+      {transactions.length === 0 ? (
+        <!-- Happy settled state -->
+        <div class="bg-white border border-hairline rounded-lg p-xxl text-center flex flex-col items-center justify-center min-h-[360px] shadow-sm select-none">
+          <span class="text-[64px] block mb-sm">🎉</span>
+          <h2 class="text-display-md font-display font-semibold text-ink tracking-tight mb-xs">
+            Everyone is Settled!
+          </h2>
+          <p class="text-lead text-ink-muted-48 leading-relaxed max-w-[400px]">
+            No outstanding balances remain. All debts have been squared away.
+          </p>
+          <a
+            href={`/trip/${code}`}
+            class="mt-lg bg-primary text-on-primary font-sans font-medium text-body px-xl py-md rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer"
+          >
+            Go to Dashboard
+          </a>
+        </div>
+      ) : (
+        <!-- Debts List -->
+        <div class="space-y-sm">
+          <div class="bg-white border border-hairline rounded-lg p-lg shadow-sm">
+            <h2 class="text-body-strong font-semibold text-ink mb-xxs">Settlement Plan</h2>
+            <p class="text-caption text-ink-muted-48 leading-relaxed mb-lg">
+              We've calculated the minimum transfers required to settle all debts.
+            </p>
+
+            <div class="space-y-md">
+              {transactions.map((tx, idx) => {
+                return (
+                  <div
+                    class="settlement-row bg-surface-pearl border border-hairline rounded-lg p-md flex flex-col sm:flex-row sm:items-center justify-between gap-md transition-all"
+                    data-tx-idx={idx}
+                  >
+                    <!-- Debtor and Creditor info -->
+                    <div class="truncate">
+                      <div class="flex items-center gap-xs text-body-strong text-ink font-semibold">
+                        <span class="truncate">{tx.fromName}</span>
+                        <span class="text-zinc-400 font-normal">&rarr;</span>
+                        <span class="truncate text-primary">{tx.toName}</span>
+                      </div>
+                      <span class="text-caption text-ink-muted-48 block mt-[2px]">
+                        Amount: <span class="font-bold text-ink">{formatINR(tx.amountPaise)}</span>
+                      </span>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-sm shrink-0">
+                      <!-- Visual Settlement Checkbox -->
+                      <label class="flex items-center gap-[6px] text-caption font-medium select-none cursor-pointer">
+                        <input
+                          type="checkbox"
+                          class="settle-checklist-cb w-4 h-4 rounded-xs border-hairline text-primary focus:ring-primary cursor-pointer"
+                          data-target-row={idx}
+                        />
+                        <span class="text-ink-muted-48 checkbox-label">Paid</span>
+                      </label>
+
+                      <!-- Pay Button (Mobile UPI or desktop modal launcher) -->
+                      {tx.toUpiId ? (
+                        <button
+                          type="button"
+                          class="pay-btn bg-primary text-on-primary text-[12px] font-sans font-medium px-lg py-xs rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer shrink-0"
+                          data-upi-link={tx.upiLink}
+                          data-qr-url={tx.qrDataUrl}
+                          data-payee={tx.toName}
+                          data-amount={formatINR(tx.amountPaise)}
+                        >
+                          Pay UPI
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          class="nudge-btn border border-primary text-primary text-[12px] font-sans font-medium px-lg py-xs rounded-pill hover:bg-zinc-50 active:scale-95 transition-all select-none cursor-pointer shrink-0"
+                          data-payee-name={tx.toName}
+                        >
+                          Nudge UPI
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  </div>
+
+  <!-- QR Code Modal (Desktop QR scanning visual popup) -->
+  <div id="qr-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-lg">
+    <div class="bg-white border border-hairline rounded-lg p-lg max-w-[360px] w-full text-center flex flex-col items-center shadow-2xl relative animate-fadeIn">
+      <!-- Close button inside modal -->
+      <button 
+        id="close-modal-btn"
+        class="absolute right-md top-md w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-ink flex items-center justify-center active:scale-90 transition-all select-none cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      
+      <h3 class="text-body-strong font-semibold text-ink mb-xxs" id="modal-payee-title">Pay Friend</h3>
+      <p class="text-caption text-ink-muted-48 mb-md" id="modal-amount-title">Amount: ₹0.00</p>
+      
+      <!-- QR Image slot -->
+      <div class="bg-zinc-50 border border-hairline rounded-md p-sm mb-md w-[240px] h-[240px] flex items-center justify-center">
+        <img id="modal-qr-img" src="" alt="UPI Payment QR Code" class="w-full h-full object-contain" />
+      </div>
+      
+      <p class="text-fine-print text-ink-muted-48 leading-relaxed max-w-[280px]">
+        Scan this QR code with any UPI app (GPay, PhonePe, Paytm) to make payment.
+      </p>
+    </div>
+  </div>
+
+  <!-- Client-side Interactive Modal & Nudge actions -->
+  <script>
+    // Checklist toggles
+    document.addEventListener('change', (e) => {
+      const cb = e.target as HTMLInputElement;
+      if (cb && cb.classList.contains('settle-checklist-cb')) {
+        const row = cb.closest('.settlement-row');
+        const label = row?.querySelector('.checkbox-label');
+        
+        if (row && label) {
+          if (cb.checked) {
+            row.classList.add('opacity-50', 'line-through');
+            label.textContent = 'Settled';
+            label.classList.replace('text-ink-muted-48', 'text-green-600');
+          } else {
+            row.classList.remove('opacity-50', 'line-through');
+            label.textContent = 'Paid';
+            label.classList.replace('text-green-600', 'text-ink-muted-48');
+          }
+        }
+      }
+    });
+
+    // Pay UPI actions (Mobile vs Desktop)
+    const modal = document.getElementById('qr-modal');
+    const modalQr = document.getElementById('modal-qr-img') as HTMLImageElement | null;
+    const modalPayee = document.getElementById('modal-payee-title');
+    const modalAmount = document.getElementById('modal-amount-title');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+
+    function isMobile() {
+      return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
+    }
+
+    document.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest('.pay-btn');
+      if (!btn) return;
+
+      const upiLink = btn.getAttribute('data-upi-link') || '';
+      const qrUrl = btn.getAttribute('data-qr-url') || '';
+      const payeeName = btn.getAttribute('data-payee') || '';
+      const amountStr = btn.getAttribute('data-amount') || '';
+
+      if (isMobile()) {
+        // Open deep link directly on mobile
+        window.location.href = upiLink;
+      } else {
+        // Show QR modal on desktop
+        if (modal && modalQr && modalPayee && modalAmount) {
+          modalQr.src = qrUrl;
+          modalPayee.textContent = `Pay ${payeeName}`;
+          modalAmount.textContent = `Amount: ${amountStr}`;
+          modal.classList.remove('hidden');
+        }
+      }
+    });
+
+    // Close modal triggers
+    if (closeModalBtn && modal) {
+      closeModalBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+      });
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.add('hidden');
+        }
+      });
+    }
+
+    // Nudge UPI Actions (nudge missing payee UPI configurations)
+    document.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest('.nudge-btn');
+      if (!btn) return;
+
+      const payeeName = btn.getAttribute('data-payee-name') || '';
+      const text = encodeURIComponent(
+        `Hey ${payeeName}! Please add your UPI ID on SplitYatra so I can settle our trip debts: ${window.location.href}`
+      );
+      window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    });
+  </script>
+</Layout>

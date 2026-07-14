@@ -51,14 +51,14 @@ Living document to track progress against `implementation.md`. Update status as 
 ## Phase 3 — Core UI Screens
 | Task | Status | Notes |
 |---|---|---|
-| Landing page | ☐ | |
-| Trip Setup page | ☐ | |
-| Join Trip page | ☐ | |
-| Trip Dashboard | ☐ | Critical path |
-| Add/Edit Expense form | ☐ | Critical path |
-| Expense History page | ☐ | |
-| Manage Members page | ☐ | |
-| Settlement View | ☐ | Critical path |
+| Landing page | ☑ | Completed in Phase 0 |
+| Trip Setup page | ☑ | Form post & local storage membership tracking |
+| Join Trip page | ☑ | Custom select/register claimer page |
+| Trip Dashboard | ☑ | Responsive layout with stats, invite, ledger |
+| Add/Edit Expense form | ☑ | Real-time calculations & exclusions checkboxes |
+| Expense History page | ☑ | Expandable drawer with search/filter |
+| Manage Members page | ☑ | Integrated UPI changes & balance deletion warnings |
+| Settlement View | ☑ | Desktop QR modals & mobile deep link handles |
 
 ## Phase 4 — India-Specific Polish
 | Task | Status | Notes |
