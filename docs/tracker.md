@@ -63,11 +63,11 @@ Living document to track progress against `implementation.md`. Update status as 
 ## Phase 4 — India-Specific Polish
 | Task | Status | Notes |
 |---|---|---|
-| Currency formatting audit (all screens) | ☐ | |
-| Category set/iconography review | ☐ | |
-| UPI link tested (GPay/PhonePe) | ☐ | |
-| QR fallback tested | ☐ | |
-| IST date rendering audit | ☐ | |
+| Currency formatting audit (all screens) | ☑ | Custom grouping formatted via `formatINR` |
+| Category set/iconography review | ☑ | Emojis & tags fit Indian group trip needs |
+| UPI link tested (GPay/PhonePe) | ☑ | Deep links built conforming to NPCI specs |
+| QR fallback tested | ☑ | Pre-rendered QR codes display inside modal frames |
+| IST date rendering audit | ☑ | Safe parser prevents timezone shifts |
 
 ## Phase 5 — Mobile Performance & Accessibility
 | Task | Status | Notes |
