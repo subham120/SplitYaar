@@ -10,13 +10,13 @@ Living document to track progress against `implementation.md`. Update status as 
 ## Phase 0 — Project Foundation
 | Task | Status | Notes |
 |---|---|---|
-| Install Tailwind CSS | ☐ | |
-| Wire design tokens from `design.md` into Tailwind config | ☐ | |
-| Set Astro `output: 'server'` + adapter | ☐ | Decide: Vercel / Netlify / Node |
-| Remove boilerplate (Welcome.astro, default assets) | ☐ | |
-| Rebuild `Layout.astro` as real base layout | ☐ | |
-| TypeScript strict mode | ☐ | |
-| Folder structure scaffolded | ☐ | |
+| Install Tailwind CSS | ☑ | Tailwind v3 |
+| Wire design tokens from `design.md` into Tailwind config | ☑ | |
+| Set Astro `output: 'server'` + adapter | ☑ | Vercel |
+| Remove boilerplate (Welcome.astro, default assets) | ☑ | |
+| Rebuild `Layout.astro` as real base layout | ☑ | |
+| TypeScript strict mode | ☑ | Explicit compilerOptions.strict |
+| Folder structure scaffolded | ☑ | |
 
 ## Phase 1 — Data Layer & Core Logic
 | Task | Status | Notes |
