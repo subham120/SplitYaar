@@ -21,18 +21,18 @@ Living document to track progress against `implementation.md`. Update status as 
 ## Phase 1 — Data Layer & Core Logic
 | Task | Status | Notes |
 |---|---|---|
-| Types: Trip, Member, Expense, ExpenseShare | ☐ | Per `schema.md` |
-| In-memory store CRUD | ☐ | |
-| Equal split logic | ☐ | |
-| Custom split logic + validation | ☐ | |
-| Rounding-remainder handling | ☐ | Leftover paise → payer |
-| Net balance computation | ☐ | |
-| Settlement simplification algorithm | ☐ | Greedy min-cash-flow |
-| ₹ formatting helper (Indian digit grouping) | ☐ | |
-| IST date helper | ☐ | |
-| UPI link builder | ☐ | |
-| QR code generation | ☐ | |
-| Core logic test cases | ☐ | Split + settlement correctness |
+| Types: Trip, Member, Expense, ExpenseShare | ☑ | Per `schema.md` |
+| In-memory store CRUD | ☑ | Local `db.json` backed |
+| Equal split logic | ☑ | |
+| Custom split logic + validation | ☑ | |
+| Rounding-remainder handling | ☑ | Leftover paise → payer |
+| Net balance computation | ☑ | |
+| Settlement simplification algorithm | ☑ | Greedy min-cash-flow |
+| ₹ formatting helper (Indian digit grouping) | ☑ | |
+| IST date helper | ☑ | |
+| UPI link builder | ☑ | |
+| QR code generation | ☑ | Using `qrcode` lib |
+| Core logic test cases | ☑ | Executed in isolation |
 
 ## Phase 2 — API Endpoints
 | Task | Status | Notes |
@@ -100,7 +100,7 @@ Living document to track progress against `implementation.md`. Update status as 
 ## Milestones
 | Milestone | Target | Status |
 |---|---|---|
-| M1: Core logic working (Phase 1) tested in isolation | | ☐ |
+| M1: Core logic working (Phase 1) tested in isolation | | ☑ |
 | M2: End-to-end critical path works locally (create trip → add expense → view settlement) | | ☐ |
 | M3: Full feature set complete (all `appflow.md` screens) | | ☐ |
 | M4: Mobile-polished + India-specific details verified | | ☐ |
