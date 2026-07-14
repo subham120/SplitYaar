@@ -61,7 +61,8 @@ const members = tripData?.members || [];
                   placeholder="Enter your name"
                   required
                   maxlength="30"
-                  class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[12px] focus:outline-none focus:border-primary placeholder:text-zinc-300"
+                  autocomplete="name"
+                  class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[12px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-zinc-300 transition-all"
                 />
               </div>
               <button
@@ -139,7 +140,7 @@ const members = tripData?.members || [];
       registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         registerBtn.disabled = true;
-        registerBtn.textContent = 'Joining...';
+        registerBtn.textContent = 'Joining…';
         regError.classList.add('hidden');
 
         const input = document.getElementById('new-member-name');

@@ -111,7 +111,7 @@ const transactions = await Promise.all(
                         <span class="truncate text-primary">{tx.toName}</span>
                       </div>
                       <span class="text-caption text-ink-muted-48 block mt-[2px]">
-                        Amount: <span class="font-bold text-ink">{formatINR(tx.amountPaise)}</span>
+                        Amount: <span class="font-bold text-ink tabular-nums">{formatINR(tx.amountPaise)}</span>
                       </span>
                     </div>
 
@@ -166,6 +166,7 @@ const transactions = await Promise.all(
       <!-- Close button inside modal -->
       <button 
         id="close-modal-btn"
+        aria-label="Close modal"
         class="absolute right-md top-md w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-ink flex items-center justify-center active:scale-90 transition-all select-none cursor-pointer"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>

@@ -49,13 +49,13 @@ const netBalances = computeNetBalances(members, expenses, shares);
               const balancePaise = mBal ? mBal.netBalancePaise : 0;
               
               let balText = 'Settled up';
-              let balClass = 'text-ink-muted-48';
+              let balClass = 'text-ink-muted-48 tabular-nums';
               if (balancePaise > 0) {
                 balText = `Owed: ${formatINR(balancePaise)}`;
-                balClass = 'text-green-600 font-semibold';
+                balClass = 'text-green-600 font-semibold tabular-nums';
               } else if (balancePaise < 0) {
                 balText = `Owes: ${formatINR(Math.abs(balancePaise))}`;
-                balClass = 'text-red-500 font-semibold';
+                balClass = 'text-red-500 font-semibold tabular-nums';
               }
 
               return (
@@ -85,7 +85,8 @@ const netBalances = computeNetBalances(members, expenses, shares);
                           type="text"
                           value={m.upiId || ''}
                           placeholder="username@bank"
-                          class="upi-input-field w-full bg-surface-pearl text-ink font-sans text-caption border border-hairline rounded-pill pl-[34px] pr-xs py-[6px] focus:outline-none focus:border-primary placeholder:text-zinc-300"
+                          autocomplete="off"
+                          class="upi-input-field w-full bg-surface-pearl text-ink font-sans text-caption border border-hairline rounded-pill pl-[34px] pr-xs py-[6px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-zinc-300 transition-all"
                         />
                       </div>
                       <button
@@ -125,7 +126,8 @@ const netBalances = computeNetBalances(members, expenses, shares);
                 placeholder="e.g. Sneha"
                 required
                 maxlength="30"
-                class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[9px] focus:outline-none focus:border-primary placeholder:text-zinc-300"
+                autocomplete="name"
+                class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[9px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-zinc-300 transition-all"
               />
             </div>
             <div>
@@ -135,7 +137,8 @@ const netBalances = computeNetBalances(members, expenses, shares);
                 id="new-member-upi"
                 name="upiId"
                 placeholder="e.g. sneha@okhdfcbank"
-                class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[9px] focus:outline-none focus:border-primary placeholder:text-zinc-300"
+                autocomplete="off"
+                class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[9px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-zinc-300 transition-all"
               />
             </div>
             <button
@@ -189,7 +192,7 @@ const netBalances = computeNetBalances(members, expenses, shares);
         e.preventDefault();
         hideAlert();
         addBtn.disabled = true;
-        addBtn.textContent = 'Adding...';
+        addBtn.textContent = 'Adding…';
 
         const nameInput = document.getElementById('new-member-name');
         const upiInput = document.getElementById('new-member-upi');
@@ -275,7 +278,7 @@ const netBalances = computeNetBalances(members, expenses, shares);
           if (!confirmDel) return;
 
           target.disabled = true;
-          target.textContent = 'Removing...';
+          target.textContent = 'Removing…';
 
           try {
             const res = await fetch(`/api/trips/${code}/members/${memberId}`, {

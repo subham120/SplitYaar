@@ -130,7 +130,7 @@ const sortedExpenses = [...expenses].sort(
                   
                   <div class="text-right shrink-0 flex items-center gap-md">
                     <div>
-                      <div class="text-[19px] font-semibold text-ink">
+                      <div class="text-[19px] font-semibold text-ink tabular-nums">
                         {formatINR(exp.amountPaise)}
                       </div>
                       <span class="text-[10px] text-ink-muted-48 block">Tap to expand</span>
@@ -153,7 +153,7 @@ const sortedExpenses = [...expenses].sort(
                         return (
                           <div class="flex justify-between items-center bg-surface-pearl border border-hairline rounded-sm px-sm py-[6px] text-caption">
                             <span class="text-ink-muted-80 truncate pr-sm">👤 {memberName}</span>
-                            <span class="font-semibold text-ink shrink-0">{formatINR(share.sharePaise)}</span>
+                            <span class="font-semibold text-ink shrink-0 tabular-nums">{formatINR(share.sharePaise)}</span>
                           </div>
                         );
                       })}
