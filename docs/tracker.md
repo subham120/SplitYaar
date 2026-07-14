@@ -37,16 +37,16 @@ Living document to track progress against `implementation.md`. Update status as 
 ## Phase 2 — API Endpoints
 | Task | Status | Notes |
 |---|---|---|
-| `POST /api/trips` | ☐ | |
-| `GET /api/trips/[id]` | ☐ | |
-| `POST /api/trips/[id]/members` | ☐ | |
-| `DELETE /api/trips/[id]/members/[memberId]` | ☐ | Block if balance ≠ 0 |
-| `POST /api/trips/[id]/members/[memberId]/upi` | ☐ | |
-| `POST /api/trips/[id]/expenses` | ☐ | |
-| `PUT /api/trips/[id]/expenses/[expenseId]` | ☐ | |
-| `DELETE /api/trips/[id]/expenses/[expenseId]` | ☐ | |
-| `GET /api/trips/[id]/settlement` | ☐ | |
-| Consistent error response shape | ☐ | |
+| `POST /api/trips` | ☑ | |
+| `GET /api/trips/[id]` | ☑ | Handles dynamic lookup by ID and code |
+| `POST /api/trips/[id]/members` | ☑ | Disambiguates names automatically |
+| `DELETE /api/trips/[id]/members/[memberId]` | ☑ | Blocked if balance ≠ 0 |
+| `POST /api/trips/[id]/members/[memberId]/upi` | ☑ | Validates pattern format |
+| `POST /api/trips/[id]/expenses` | ☑ | Validates split matches sum |
+| `PUT /api/trips/[id]/expenses/[expenseId]` | ☑ | Validates split updates |
+| `DELETE /api/trips/[id]/expenses/[expenseId]` | ☑ | |
+| `GET /api/trips/[id]/settlement` | ☑ | Runs greedy min-cash-flow |
+| Consistent error response shape | ☑ | Status 400/404/500 JSON errors |
 
 ## Phase 3 — Core UI Screens
 | Task | Status | Notes |

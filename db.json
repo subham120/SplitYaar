@@ -1,0 +1,37 @@
+{
+  "trips": [
+    {
+      "id": "25e1286c-ab63-47fb-9d98-77e4b3ff3b4c",
+      "code": "MRI8GG63",
+      "name": "Goa 2026",
+      "createdAt": "2026-07-14T06:58:04.804Z",
+      "createdByMemberId": "1914e2c7-3efb-4325-87e2-c158260c0209",
+      "status": "active"
+    }
+  ],
+  "members": [
+    {
+      "id": "1914e2c7-3efb-4325-87e2-c158260c0209",
+      "tripId": "25e1286c-ab63-47fb-9d98-77e4b3ff3b4c",
+      "name": "Aman",
+      "upiId": null,
+      "joinedAt": "2026-07-14T06:58:04.804Z"
+    },
+    {
+      "id": "2ac183c4-6aa7-443a-8c1c-948bb81b336d",
+      "tripId": "25e1286c-ab63-47fb-9d98-77e4b3ff3b4c",
+      "name": "Priya",
+      "upiId": "priya@okicici",
+      "joinedAt": "2026-07-14T06:58:04.858Z"
+    },
+    {
+      "id": "d4943935-b174-4b16-8d5b-68236b4a231e",
+      "tripId": "25e1286c-ab63-47fb-9d98-77e4b3ff3b4c",
+      "name": "Rahul",
+      "upiId": null,
+      "joinedAt": "2026-07-14T06:58:04.867Z"
+    }
+  ],
+  "expenses": [],
+  "shares": []
+}
