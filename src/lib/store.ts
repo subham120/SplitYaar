@@ -9,9 +9,14 @@ import { computeNetBalances } from './settlement';
 // ---------------------------------------------------------------------------
 
 function getDb() {
-  const url = import.meta.env.DATABASE_URL || process.env.DATABASE_URL;
+  // process.env is required for runtime secrets on Vercel (import.meta.env is build-time only)
+  const url = process.env.DATABASE_URL;
   if (!url) {
-    throw new Error('DATABASE_URL environment variable is not set. See .env.example for setup instructions.');
+    throw new Error(
+      'DATABASE_URL environment variable is not set.\n' +
+      'Local dev: add it to your .env file (see .env.example).\n' +
+      'Vercel: add it in Project Settings → Environment Variables.'
+    );
   }
   return neon(url);
 }
