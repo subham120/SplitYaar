@@ -81,12 +81,12 @@ Living document to track progress against `implementation.md`. Update status as 
 ## Phase 6 — QA & Edge Cases
 | Task | Status | Notes |
 |---|---|---|
-| Rounding-remainder edge cases | ☐ | |
-| Member removal balance-block | ☐ | |
-| Edit/delete recalculation correctness | ☐ | |
-| Trip code collision handling | ☐ | |
-| Empty states | ☐ | |
-| Refresh persistence check | ☐ | |
+| Rounding-remainder edge cases | ☑ | Base test cases and decimal remains verified |
+| Member removal balance-block | ☑ | Status 400 return lock validated in tests |
+| Edit/delete recalculation correctness | ☑ | Verified dynamic recalculation in db.json |
+| Trip code collision handling | ☑ | Loop limits + UUID fallback in generateTripCode |
+| Empty states | ☑ | Clean placeholders rendered on dashboard, logs, settles |
+| Refresh persistence check | ☑ | Database reads/writes synced to disk immediately |
 
 ## Phase 7 — Deployment
 | Task | Status | Notes |
