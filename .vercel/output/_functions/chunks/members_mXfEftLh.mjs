@@ -1,8 +1,8 @@
 import { t as __exportAll } from "./rolldown-runtime_D7D4PA-g.mjs";
 import { C as createAstro, _ as addAttribute, a as renderComponent, d as renderTemplate, h as maybeRenderHead, v as defineScriptVars, w as createComponent } from "./server_Ck1Ey-Cv.mjs";
 import "./compiler_DXTdqtzG.mjs";
-import { a as getTripByCode, u as computeNetBalances } from "./store_hUDrmsS2.mjs";
-import { t as $$Layout } from "./Layout_pPVGDrUr.mjs";
+import { a as getTripByCode, u as computeNetBalances } from "./store_CGxwQav-.mjs";
+import { t as $$Layout } from "./Layout_DK2QgEmx.mjs";
 import { r as $$SubNav, t as formatINR } from "./format_JJ_MKMuP.mjs";
 //#region src/pages/trip/[code]/members.astro
 var members_exports = /* @__PURE__ */ __exportAll({
@@ -39,16 +39,16 @@ var $$Members = createComponent(async ($$result, $$props, $$slots) => {
 		const mBal = netBalances.find((b) => b.memberId === m.id);
 		const balancePaise = mBal ? mBal.netBalancePaise : 0;
 		let balText = "Settled up";
-		let balClass = "text-ink-muted-48";
+		let balClass = "text-ink-muted-48 tabular-nums";
 		if (balancePaise > 0) {
 			balText = `Owed: ${formatINR(balancePaise)}`;
-			balClass = "text-green-600 font-semibold";
+			balClass = "text-green-600 font-semibold tabular-nums";
 		} else if (balancePaise < 0) {
 			balText = `Owes: ${formatINR(Math.abs(balancePaise))}`;
-			balClass = "text-red-500 font-semibold";
+			balClass = "text-red-500 font-semibold tabular-nums";
 		}
-		return renderTemplate`<div class="member-management-row flex flex-col md:flex-row md:items-center justify-between gap-md border-b border-divider-soft pb-lg last:border-0 last:pb-0"${addAttribute(m.id, "data-member-id")}${addAttribute(m.name, "data-member-name")}><!-- Member Name & Net Balance Status --><div class="truncate"><span class="text-body-strong text-ink font-semibold flex items-center gap-xs"><span class="truncate">${m.name}</span><span class="member-you-badge hidden text-fine-print bg-primary text-white px-xs py-[2px] rounded-xs text-[10px]">You</span></span><span${addAttribute(`text-caption block mt-[2px] ${balClass}`, "class")}>${balText}</span></div><!-- UPI Input and Action Options --><div class="flex items-center gap-md w-full md:w-auto"><!-- UPI Form --><div class="flex items-center gap-xs flex-grow md:flex-grow-0"><div class="relative flex-grow max-w-xs"><span class="absolute left-md top-1/2 -translate-y-1/2 text-fine-print text-ink-muted-48">upi:</span><input type="text"${addAttribute(m.upiId || "", "value")} placeholder="username@bank" class="upi-input-field w-full bg-surface-pearl text-ink font-sans text-caption border border-hairline rounded-pill pl-[34px] pr-xs py-[6px] focus:outline-none focus:border-primary placeholder:text-zinc-300"></div><button type="button" class="save-upi-btn bg-primary text-on-primary text-[12px] font-sans font-medium px-md py-[6px] rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer shrink-0">Save</button></div><!-- Delete button --><button type="button" class="remove-member-btn text-caption text-red-500 hover:text-red-700 font-medium select-none cursor-pointer transition-colors active:scale-95 shrink-0">Remove</button></div></div>`;
-	})}</div></div></div><!-- Right Column: Add Member Form --><div><div class="bg-white border border-hairline rounded-lg p-lg shadow-sm"><h2 class="text-body-strong font-semibold text-ink mb-md">Add Member</h2><form id="add-member-form" class="space-y-md"><div><label for="new-member-name" class="block text-caption-strong text-ink font-semibold mb-xxs">Name</label><input type="text" id="new-member-name" name="name" placeholder="e.g. Sneha" required maxlength="30" class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[9px] focus:outline-none focus:border-primary placeholder:text-zinc-300"></div><div><label for="new-member-upi" class="block text-caption-strong text-ink font-semibold mb-xxs">UPI ID (Optional)</label><input type="text" id="new-member-upi" name="upiId" placeholder="e.g. sneha@okhdfcbank" class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[9px] focus:outline-none focus:border-primary placeholder:text-zinc-300"></div><button type="submit" id="add-btn" class="w-full bg-primary text-on-primary font-sans font-medium text-body py-[10px] rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer text-center">Add Member</button></form></div></div></div></div>
+		return renderTemplate`<div class="member-management-row flex flex-col md:flex-row md:items-center justify-between gap-md border-b border-divider-soft pb-lg last:border-0 last:pb-0"${addAttribute(m.id, "data-member-id")}${addAttribute(m.name, "data-member-name")}><!-- Member Name & Net Balance Status --><div class="truncate"><span class="text-body-strong text-ink font-semibold flex items-center gap-xs"><span class="truncate">${m.name}</span><span class="member-you-badge hidden text-fine-print bg-primary text-white px-xs py-[2px] rounded-xs text-[10px]">You</span></span><span${addAttribute(`text-caption block mt-[2px] ${balClass}`, "class")}>${balText}</span></div><!-- UPI Input and Action Options --><div class="flex items-center gap-md w-full md:w-auto"><!-- UPI Form --><div class="flex items-center gap-xs flex-grow md:flex-grow-0"><div class="relative flex-grow max-w-xs"><span class="absolute left-md top-1/2 -translate-y-1/2 text-fine-print text-ink-muted-48">upi:</span><input type="text"${addAttribute(m.upiId || "", "value")} placeholder="username@bank" autocomplete="off" class="upi-input-field w-full bg-surface-pearl text-ink font-sans text-caption border border-hairline rounded-pill pl-[34px] pr-xs py-[6px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-zinc-300 transition-all"></div><button type="button" class="save-upi-btn bg-primary text-on-primary text-[12px] font-sans font-medium px-md py-[6px] rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer shrink-0">Save</button></div><!-- Delete button --><button type="button" class="remove-member-btn text-caption text-red-500 hover:text-red-700 font-medium select-none cursor-pointer transition-colors active:scale-95 shrink-0">Remove</button></div></div>`;
+	})}</div></div></div><!-- Right Column: Add Member Form --><div><div class="bg-white border border-hairline rounded-lg p-lg shadow-sm"><h2 class="text-body-strong font-semibold text-ink mb-md">Add Member</h2><form id="add-member-form" class="space-y-md"><div><label for="new-member-name" class="block text-caption-strong text-ink font-semibold mb-xxs">Name</label><input type="text" id="new-member-name" name="name" placeholder="e.g. Sneha" required maxlength="30" autocomplete="name" class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[9px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-zinc-300 transition-all"></div><div><label for="new-member-upi" class="block text-caption-strong text-ink font-semibold mb-xxs">UPI ID (Optional)</label><input type="text" id="new-member-upi" name="upiId" placeholder="e.g. sneha@okhdfcbank" autocomplete="off" class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[9px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-zinc-300 transition-all"></div><button type="submit" id="add-btn" class="w-full bg-primary text-on-primary font-sans font-medium text-body py-[10px] rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer text-center">Add Member</button></form></div></div></div></div>
 
   <script>(function(){${defineScriptVars({ code })}
     const currentMemberId = localStorage.getItem(\`split_yatra_member_\${code}\`);
@@ -87,7 +87,7 @@ var $$Members = createComponent(async ($$result, $$props, $$slots) => {
         e.preventDefault();
         hideAlert();
         addBtn.disabled = true;
-        addBtn.textContent = 'Adding...';
+        addBtn.textContent = 'Adding…';
 
         const nameInput = document.getElementById('new-member-name');
         const upiInput = document.getElementById('new-member-upi');
@@ -173,7 +173,7 @@ var $$Members = createComponent(async ($$result, $$props, $$slots) => {
           if (!confirmDel) return;
 
           target.disabled = true;
-          target.textContent = 'Removing...';
+          target.textContent = 'Removing…';
 
           try {
             const res = await fetch(\`/api/trips/\${code}/members/\${memberId}\`, {

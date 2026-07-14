@@ -1,5 +1,5 @@
 import { t as __exportAll } from "./rolldown-runtime_D7D4PA-g.mjs";
-import { a as getTripByCode, o as getTripById, s as removeMember } from "./store_hUDrmsS2.mjs";
+import { a as getTripByCode, o as getTripById, s as removeMember } from "./store_CGxwQav-.mjs";
 //#region src/pages/api/trips/[id]/members/[memberId].ts
 var _memberId__exports = /* @__PURE__ */ __exportAll({ DELETE: () => DELETE });
 var DELETE = async ({ params }) => {

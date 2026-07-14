@@ -1,5 +1,5 @@
 import { t as __exportAll } from "./rolldown-runtime_D7D4PA-g.mjs";
-import { r as createTrip } from "./store_hUDrmsS2.mjs";
+import { r as createTrip } from "./store_CGxwQav-.mjs";
 //#region src/pages/api/trips/index.ts
 var trips_exports = /* @__PURE__ */ __exportAll({ POST: () => POST });
 var POST = async ({ request }) => {

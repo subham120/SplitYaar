@@ -91,9 +91,9 @@ Living document to track progress against `implementation.md`. Update status as 
 ## Phase 7 — Deployment
 | Task | Status | Notes |
 |---|---|---|
-| Hosting target chosen | ☐ | |
-| Production persistence configured | ☐ | JSON snapshot min / SQLite recommended |
-| Multi-device smoke test | ☐ | |
+| Hosting target chosen | ☑ | Vercel (already configured via `@astrojs/vercel`) |
+| Production persistence configured | ☑ | Neon Postgres via `@neondatabase/serverless`; `store.ts` fully migrated from `db.json` |
+| Multi-device smoke test | ☐ | Pending: deploy to Vercel + run `scripts/migrate.sql` on Neon DB |
 
 ---
 
@@ -101,10 +101,10 @@ Living document to track progress against `implementation.md`. Update status as 
 | Milestone | Target | Status |
 |---|---|---|
 | M1: Core logic working (Phase 1) tested in isolation | | ☑ |
-| M2: End-to-end critical path works locally (create trip → add expense → view settlement) | | ☐ |
-| M3: Full feature set complete (all `appflow.md` screens) | | ☐ |
-| M4: Mobile-polished + India-specific details verified | | ☐ |
-| M5: Deployed and tested with a real friend group on an actual trip | | ☐ |
+| M2: End-to-end critical path works locally (create trip → add expense → view settlement) | | ☑ |
+| M3: Full feature set complete (all `appflow.md` screens) | | ☑ |
+| M4: Mobile-polished + India-specific details verified | | ☑ |
+| M5: Deployed and tested with a real friend group on an actual trip | | ◐ | Awaiting: Neon DB migration + Vercel deploy + real device smoke test |
 
 ---
 
@@ -119,3 +119,4 @@ Living document to track progress against `implementation.md`. Update status as 
 | Date | Change |
 |---|---|
 | Initial creation | Tracker created alongside `prd.md`, `trd.md`, `appflow.md`, `schema.md`, `implementation.md`, `rules.md` |
+| Phase 7 | Replaced `db.json` store with Neon Postgres (`@neondatabase/serverless`); added `scripts/migrate.sql`, `.env.example`, `vercel.json`, updated `README.md`; `npm run build` passes ✅ |

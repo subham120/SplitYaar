@@ -16,6 +16,10 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+.env.local
+
+# local dev database (do NOT commit real trip data)
+db.json
 
 # macOS-specific files
 .DS_Store

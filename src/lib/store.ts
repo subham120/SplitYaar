@@ -1,106 +1,116 @@
-import fs from 'fs';
-import path from 'path';
+import { neon } from '@neondatabase/serverless';
 import crypto from 'crypto';
 import type { Trip, Member, Expense, ExpenseShare } from './types';
 import { validateCustomSplit } from './split';
 import { computeNetBalances } from './settlement';
 
-interface DBState {
-  trips: Trip[];
-  members: Member[];
-  expenses: Expense[];
-  shares: ExpenseShare[];
-}
+// ---------------------------------------------------------------------------
+// DB client
+// ---------------------------------------------------------------------------
 
-const DB_FILE = path.join(process.cwd(), 'db.json');
-
-// Memory cache of database state
-let state: DBState = {
-  trips: [],
-  members: [],
-  expenses: [],
-  shares: [],
-};
-
-// Initial load on import
-function loadDB() {
-  try {
-    if (fs.existsSync(DB_FILE)) {
-      const data = fs.readFileSync(DB_FILE, 'utf-8');
-      state = JSON.parse(data);
-    } else {
-      saveDB();
-    }
-  } catch (err) {
-    console.error('Failed to load local DB file, starting with empty state:', err);
+function getDb() {
+  const url = import.meta.env.DATABASE_URL || process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error('DATABASE_URL environment variable is not set. See .env.example for setup instructions.');
   }
+  return neon(url);
 }
 
-// Persist memory state to JSON file
-function saveDB() {
-  try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(state, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Failed to write local DB file:', err);
-  }
+// ---------------------------------------------------------------------------
+// Row → TypeScript type mappers
+// ---------------------------------------------------------------------------
+
+function rowToTrip(row: Record<string, unknown>): Trip {
+  return {
+    id: row.id as string,
+    code: row.code as string,
+    name: row.name as string,
+    createdAt: (row.created_at as Date).toISOString(),
+    createdByMemberId: row.created_by_member_id as string,
+    status: row.status as 'active' | 'closed',
+  };
 }
 
-// Initialize database
-loadDB();
+function rowToMember(row: Record<string, unknown>): Member {
+  return {
+    id: row.id as string,
+    tripId: row.trip_id as string,
+    name: row.name as string,
+    upiId: (row.upi_id as string | null) ?? null,
+    joinedAt: (row.joined_at as Date).toISOString(),
+  };
+}
 
-/**
- * Generates a unique 8-character uppercase alphanumeric trip code.
- * Ensures no collisions with existing trips.
- */
-function generateTripCode(): string {
+function rowToExpense(row: Record<string, unknown>): Expense {
+  return {
+    id: row.id as string,
+    tripId: row.trip_id as string,
+    description: row.description as string,
+    amountPaise: row.amount_paise as number,
+    paidByMemberId: row.paid_by_member_id as string,
+    category: row.category as Expense['category'],
+    splitType: row.split_type as Expense['splitType'],
+    date: typeof row.date === 'string' ? row.date : (row.date as Date).toISOString().slice(0, 10),
+    createdAt: (row.created_at as Date).toISOString(),
+    updatedAt: (row.updated_at as Date).toISOString(),
+  };
+}
+
+function rowToShare(row: Record<string, unknown>): ExpenseShare {
+  return {
+    id: row.id as string,
+    expenseId: row.expense_id as string,
+    memberId: row.member_id as string,
+    sharePaise: row.share_paise as number,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Trip code generation
+// ---------------------------------------------------------------------------
+
+async function generateTripCode(): Promise<string> {
+  const sql = getDb();
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let attempts = 0;
-  
-  while (attempts < 100) {
+
+  for (let attempt = 0; attempt < 100; attempt++) {
     let code = '';
     for (let i = 0; i < 8; i++) {
       code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    
-    const exists = state.trips.some((t) => t.code === code);
-    if (!exists) {
-      return code;
-    }
-    attempts++;
+    const rows = await sql`SELECT 1 FROM trips WHERE code = ${code} LIMIT 1`;
+    if (rows.length === 0) return code;
   }
-  
-  // Fallback to random slice of UUID in case of repeated collision
+
+  // Fallback: UUID slice (near-zero collision chance)
   return crypto.randomUUID().slice(0, 8).toUpperCase();
 }
 
+// ---------------------------------------------------------------------------
+// Public store API (same shape as the old in-memory store)
+// ---------------------------------------------------------------------------
+
 export async function createTrip(name: string, creatorName: string): Promise<Trip> {
+  const sql = getDb();
   const tripId = crypto.randomUUID();
   const creatorMemberId = crypto.randomUUID();
-  const code = generateTripCode();
+  const code = await generateTripCode();
   const now = new Date().toISOString();
 
-  const creator: Member = {
-    id: creatorMemberId,
-    tripId,
-    name: creatorName.trim(),
-    upiId: null,
-    joinedAt: now,
-  };
+  // Insert trip
+  await sql`
+    INSERT INTO trips (id, code, name, created_at, created_by_member_id, status)
+    VALUES (${tripId}, ${code}, ${name.trim() || 'Untitled Trip'}, ${now}, ${creatorMemberId}, 'active')
+  `;
 
-  const trip: Trip = {
-    id: tripId,
-    code,
-    name: name.trim() || 'Untitled Trip',
-    createdAt: now,
-    createdByMemberId: creatorMemberId,
-    status: 'active',
-  };
+  // Insert creator member
+  await sql`
+    INSERT INTO members (id, trip_id, name, upi_id, joined_at)
+    VALUES (${creatorMemberId}, ${tripId}, ${creatorName.trim()}, NULL, ${now})
+  `;
 
-  state.trips.push(trip);
-  state.members.push(creator);
-  saveDB();
-
-  return trip;
+  const rows = await sql`SELECT * FROM trips WHERE id = ${tripId}`;
+  return rowToTrip(rows[0] as Record<string, unknown>);
 }
 
 export async function getTripByCode(code: string): Promise<{
@@ -109,16 +119,14 @@ export async function getTripByCode(code: string): Promise<{
   expenses: Expense[];
   shares: ExpenseShare[];
 } | null> {
+  const sql = getDb();
   const normalizedCode = code.trim().toUpperCase();
-  const trip = state.trips.find((t) => t.code === normalizedCode);
-  if (!trip) return null;
 
-  const members = state.members.filter((m) => m.tripId === trip.id);
-  const expenses = state.expenses.filter((e) => e.tripId === trip.id);
-  const expenseIds = expenses.map((e) => e.id);
-  const shares = state.shares.filter((s) => expenseIds.includes(s.expenseId));
+  const tripRows = await sql`SELECT * FROM trips WHERE code = ${normalizedCode}`;
+  if (tripRows.length === 0) return null;
 
-  return { trip, members, expenses, shares };
+  const trip = rowToTrip(tripRows[0] as Record<string, unknown>);
+  return fetchTripRelations(sql, trip);
 }
 
 export async function getTripById(id: string): Promise<{
@@ -127,29 +135,57 @@ export async function getTripById(id: string): Promise<{
   expenses: Expense[];
   shares: ExpenseShare[];
 } | null> {
-  const trip = state.trips.find((t) => t.id === id);
-  if (!trip) return null;
+  const sql = getDb();
 
-  const members = state.members.filter((m) => m.tripId === trip.id);
-  const expenses = state.expenses.filter((e) => e.tripId === trip.id);
-  const expenseIds = expenses.map((e) => e.id);
-  const shares = state.shares.filter((s) => expenseIds.includes(s.expenseId));
+  const tripRows = await sql`SELECT * FROM trips WHERE id = ${id}`;
+  if (tripRows.length === 0) return null;
+
+  const trip = rowToTrip(tripRows[0] as Record<string, unknown>);
+  return fetchTripRelations(sql, trip);
+}
+
+async function fetchTripRelations(
+  sql: ReturnType<typeof neon>,
+  trip: Trip
+): Promise<{
+  trip: Trip;
+  members: Member[];
+  expenses: Expense[];
+  shares: ExpenseShare[];
+}> {
+  const [memberRows, expenseRows] = await Promise.all([
+    sql`SELECT * FROM members WHERE trip_id = ${trip.id} ORDER BY joined_at ASC`,
+    sql`SELECT * FROM expenses WHERE trip_id = ${trip.id} ORDER BY date DESC, created_at DESC`,
+  ]);
+
+  const members = memberRows.map((r) => rowToMember(r as Record<string, unknown>));
+  const expenses = expenseRows.map((r) => rowToExpense(r as Record<string, unknown>));
+
+  let shares: ExpenseShare[] = [];
+  if (expenses.length > 0) {
+    const expenseIds = expenses.map((e) => e.id);
+    const shareRows = await sql`
+      SELECT * FROM expense_shares WHERE expense_id = ANY(${expenseIds})
+    `;
+    shares = shareRows.map((r) => rowToShare(r as Record<string, unknown>));
+  }
 
   return { trip, members, expenses, shares };
 }
 
 export async function addMember(tripId: string, name: string, upiId: string | null = null): Promise<Member> {
-  const trip = state.trips.find((t) => t.id === tripId);
-  if (!trip) throw new Error('Trip not found');
+  const sql = getDb();
+
+  const tripRows = await sql`SELECT 1 FROM trips WHERE id = ${tripId}`;
+  if (tripRows.length === 0) throw new Error('Trip not found');
 
   let memberName = name.trim();
   if (!memberName) throw new Error('Member name cannot be empty');
 
-  // Disambiguate name collision in the same trip
-  const existingNames = state.members
-    .filter((m) => m.tripId === tripId)
-    .map((m) => m.name.toLowerCase());
-  
+  // Disambiguate name collision
+  const existingRows = await sql`SELECT name FROM members WHERE trip_id = ${tripId}`;
+  const existingNames = existingRows.map((r) => (r.name as string).toLowerCase());
+
   if (existingNames.includes(memberName.toLowerCase())) {
     let suffix = 2;
     while (existingNames.includes(`${memberName.toLowerCase()} ${suffix}`)) {
@@ -158,25 +194,25 @@ export async function addMember(tripId: string, name: string, upiId: string | nu
     memberName = `${memberName} ${suffix}`;
   }
 
-  const member: Member = {
-    id: crypto.randomUUID(),
-    tripId,
-    name: memberName,
-    upiId: upiId ? upiId.trim() : null,
-    joinedAt: new Date().toISOString(),
-  };
+  const memberId = crypto.randomUUID();
+  const now = new Date().toISOString();
 
-  state.members.push(member);
-  saveDB();
+  await sql`
+    INSERT INTO members (id, trip_id, name, upi_id, joined_at)
+    VALUES (${memberId}, ${tripId}, ${memberName}, ${upiId ? upiId.trim() : null}, ${now})
+  `;
 
-  return member;
+  const rows = await sql`SELECT * FROM members WHERE id = ${memberId}`;
+  return rowToMember(rows[0] as Record<string, unknown>);
 }
 
 export async function removeMember(tripId: string, memberId: string): Promise<void> {
-  const trip = state.trips.find((t) => t.id === tripId);
-  if (!trip) throw new Error('Trip not found');
+  const sql = getDb();
 
-  // Verify member balance is exactly zero before removing
+  const tripRows = await sql`SELECT 1 FROM trips WHERE id = ${tripId}`;
+  if (tripRows.length === 0) throw new Error('Trip not found');
+
+  // Balance check
   const tripData = await getTripById(tripId);
   if (tripData) {
     const balances = computeNetBalances(tripData.members, tripData.expenses, tripData.shares);
@@ -186,26 +222,29 @@ export async function removeMember(tripId: string, memberId: string): Promise<vo
     }
   }
 
-  state.members = state.members.filter((m) => !(m.tripId === tripId && m.id === memberId));
-  // Clean up any stray shares
-  state.shares = state.shares.filter((s) => s.memberId !== memberId);
-  
-  saveDB();
+  // Cascade delete removes expense_shares referencing this member automatically
+  // But we also clean up any stray shares that might remain (extra safety)
+  await sql`DELETE FROM expense_shares WHERE member_id = ${memberId}`;
+  await sql`DELETE FROM members WHERE id = ${memberId} AND trip_id = ${tripId}`;
 }
 
 export async function updateMemberUpi(tripId: string, memberId: string, upiId: string | null): Promise<Member> {
-  const member = state.members.find((m) => m.tripId === tripId && m.id === memberId);
-  if (!member) throw new Error('Member not found in this trip');
+  const sql = getDb();
 
-  // Basic validation for UPI ID
+  const memberRows = await sql`SELECT * FROM members WHERE id = ${memberId} AND trip_id = ${tripId}`;
+  if (memberRows.length === 0) throw new Error('Member not found in this trip');
+
   if (upiId && !/^[\w.\-]+@[\w]+$/.test(upiId.trim())) {
     throw new Error('Invalid UPI ID format (expected name@bank)');
   }
 
-  member.upiId = upiId ? upiId.trim() : null;
-  saveDB();
+  await sql`
+    UPDATE members SET upi_id = ${upiId ? upiId.trim() : null}
+    WHERE id = ${memberId} AND trip_id = ${tripId}
+  `;
 
-  return member;
+  const rows = await sql`SELECT * FROM members WHERE id = ${memberId}`;
+  return rowToMember(rows[0] as Record<string, unknown>);
 }
 
 export async function addExpense(
@@ -213,15 +252,13 @@ export async function addExpense(
   expenseData: Omit<Expense, 'id' | 'tripId' | 'createdAt' | 'updatedAt'>,
   sharesData: Omit<ExpenseShare, 'id' | 'expenseId'>[]
 ): Promise<Expense> {
-  const trip = state.trips.find((t) => t.id === tripId);
-  if (!trip) throw new Error('Trip not found');
+  const sql = getDb();
 
-  // Validate expense amount
-  if (expenseData.amountPaise <= 0) {
-    throw new Error('Expense amount must be greater than zero');
-  }
+  const tripRows = await sql`SELECT 1 FROM trips WHERE id = ${tripId}`;
+  if (tripRows.length === 0) throw new Error('Trip not found');
 
-  // Validate custom split balance sums exactly to total
+  if (expenseData.amountPaise <= 0) throw new Error('Expense amount must be greater than zero');
+
   const { isValid, differencePaise } = validateCustomSplit(expenseData.amountPaise, sharesData);
   if (!isValid) {
     throw new Error(`Split total does not match expense total. Difference: ${differencePaise / 100} Rupee(s)`);
@@ -230,26 +267,24 @@ export async function addExpense(
   const expenseId = crypto.randomUUID();
   const now = new Date().toISOString();
 
-  const expense: Expense = {
-    ...expenseData,
-    id: expenseId,
-    tripId,
-    createdAt: now,
-    updatedAt: now,
-  };
+  await sql`
+    INSERT INTO expenses (id, trip_id, description, amount_paise, paid_by_member_id, category, split_type, date, created_at, updated_at)
+    VALUES (
+      ${expenseId}, ${tripId}, ${expenseData.description}, ${expenseData.amountPaise},
+      ${expenseData.paidByMemberId}, ${expenseData.category}, ${expenseData.splitType},
+      ${expenseData.date}, ${now}, ${now}
+    )
+  `;
 
-  const shares: ExpenseShare[] = sharesData.map((share) => ({
-    id: crypto.randomUUID(),
-    expenseId,
-    memberId: share.memberId,
-    sharePaise: share.sharePaise,
-  }));
+  for (const share of sharesData) {
+    await sql`
+      INSERT INTO expense_shares (id, expense_id, member_id, share_paise)
+      VALUES (${crypto.randomUUID()}, ${expenseId}, ${share.memberId}, ${share.sharePaise})
+    `;
+  }
 
-  state.expenses.push(expense);
-  state.shares.push(...shares);
-  saveDB();
-
-  return expense;
+  const rows = await sql`SELECT * FROM expenses WHERE id = ${expenseId}`;
+  return rowToExpense(rows[0] as Record<string, unknown>);
 }
 
 export async function updateExpense(
@@ -258,47 +293,55 @@ export async function updateExpense(
   expenseUpdates: Partial<Omit<Expense, 'id' | 'tripId' | 'createdAt' | 'updatedAt'>>,
   sharesData: Omit<ExpenseShare, 'id' | 'expenseId'>[]
 ): Promise<Expense> {
-  const expense = state.expenses.find((e) => e.tripId === tripId && e.id === expenseId);
-  if (!expense) throw new Error('Expense not found');
+  const sql = getDb();
 
-  const newAmount = expenseUpdates.amountPaise !== undefined ? expenseUpdates.amountPaise : expense.amountPaise;
-  
-  if (newAmount <= 0) {
-    throw new Error('Expense amount must be greater than zero');
-  }
+  const expRows = await sql`SELECT * FROM expenses WHERE id = ${expenseId} AND trip_id = ${tripId}`;
+  if (expRows.length === 0) throw new Error('Expense not found');
 
-  // Validate custom split balance sums exactly to new/updated total
+  const existing = rowToExpense(expRows[0] as Record<string, unknown>);
+  const newAmount = expenseUpdates.amountPaise !== undefined ? expenseUpdates.amountPaise : existing.amountPaise;
+
+  if (newAmount <= 0) throw new Error('Expense amount must be greater than zero');
+
   const { isValid, differencePaise } = validateCustomSplit(newAmount, sharesData);
   if (!isValid) {
     throw new Error(`Split total does not match expense total. Difference: ${differencePaise / 100} Rupee(s)`);
   }
 
   const now = new Date().toISOString();
+  const merged = { ...existing, ...expenseUpdates };
 
-  // Apply updates
-  Object.assign(expense, expenseUpdates);
-  expense.updatedAt = now;
+  await sql`
+    UPDATE expenses SET
+      description = ${merged.description},
+      amount_paise = ${merged.amountPaise},
+      paid_by_member_id = ${merged.paidByMemberId},
+      category = ${merged.category},
+      split_type = ${merged.splitType},
+      date = ${merged.date},
+      updated_at = ${now}
+    WHERE id = ${expenseId} AND trip_id = ${tripId}
+  `;
 
-  // Replace existing shares
-  state.shares = state.shares.filter((s) => s.expenseId !== expenseId);
-  const newShares: ExpenseShare[] = sharesData.map((share) => ({
-    id: crypto.randomUUID(),
-    expenseId,
-    memberId: share.memberId,
-    sharePaise: share.sharePaise,
-  }));
-  state.shares.push(...newShares);
+  // Replace shares
+  await sql`DELETE FROM expense_shares WHERE expense_id = ${expenseId}`;
+  for (const share of sharesData) {
+    await sql`
+      INSERT INTO expense_shares (id, expense_id, member_id, share_paise)
+      VALUES (${crypto.randomUUID()}, ${expenseId}, ${share.memberId}, ${share.sharePaise})
+    `;
+  }
 
-  saveDB();
-
-  return expense;
+  const rows = await sql`SELECT * FROM expenses WHERE id = ${expenseId}`;
+  return rowToExpense(rows[0] as Record<string, unknown>);
 }
 
 export async function deleteExpense(tripId: string, expenseId: string): Promise<void> {
-  const expense = state.expenses.find((e) => e.tripId === tripId && e.id === expenseId);
-  if (!expense) throw new Error('Expense not found');
+  const sql = getDb();
 
-  state.expenses = state.expenses.filter((e) => !(e.tripId === tripId && e.id === expenseId));
-  state.shares = state.shares.filter((s) => s.expenseId !== expenseId);
-  saveDB();
+  const expRows = await sql`SELECT 1 FROM expenses WHERE id = ${expenseId} AND trip_id = ${tripId}`;
+  if (expRows.length === 0) throw new Error('Expense not found');
+
+  // CASCADE on expense_shares handles cleanup automatically
+  await sql`DELETE FROM expenses WHERE id = ${expenseId} AND trip_id = ${tripId}`;
 }

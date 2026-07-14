@@ -1,7 +1,7 @@
 import { t as __exportAll } from "./rolldown-runtime_D7D4PA-g.mjs";
 import { a as renderComponent, d as renderTemplate, h as maybeRenderHead, n as renderScript, w as createComponent } from "./server_Ck1Ey-Cv.mjs";
 import "./compiler_DXTdqtzG.mjs";
-import { t as $$Layout } from "./Layout_pPVGDrUr.mjs";
+import { t as $$Layout } from "./Layout_DK2QgEmx.mjs";
 //#region src/pages/index.astro
 var pages_exports = /* @__PURE__ */ __exportAll({
 	default: () => $$Index,
