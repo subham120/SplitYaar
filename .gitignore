@@ -25,5 +25,9 @@ db.json
 # macOS-specific files
 .DS_Store
 
-# jetbrains setting folder
+# editor and IDE folders
 .idea/
+.vscode/
+.kilo/
+.kilocode/
+
