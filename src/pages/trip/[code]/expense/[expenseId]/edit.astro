@@ -406,7 +406,7 @@ const expenseShares = allShares.filter((s) => s.expenseId === expenseId);
         const paidByMemberId = payerSelect.value;
         const category = hiddenCategory.value;
         const splitType = hiddenSplitType.value;
-        const dateInput = document.getElementById('exp-date') as HTMLInputElement | null;
+        const dateInput = document.getElementById('exp-date');
         const date = dateInput && dateInput.value ? dateInput.value : expense.date;
 
         let finalShares = [];

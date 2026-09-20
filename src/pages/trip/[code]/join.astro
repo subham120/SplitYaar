@@ -124,7 +124,7 @@ const members = tripData?.members || [];
       localStorage.setItem(`split_yatra_member_${code}`, memberId);
 
       // 2. Add trip to local dropdown index
-      let localTrips: { code: string; name: string }[] = [];
+      let localTrips = [];
       try {
         const parsed = JSON.parse(localStorage.getItem('split_yatra_trips') || '[]');
         localTrips = Array.isArray(parsed) ? parsed : [];
@@ -178,11 +178,13 @@ const members = tripData?.members || [];
     // B. Claim Member click event
     if (unclaimedContainer) {
       unclaimedContainer.addEventListener('click', (e) => {
-        const btn = (e.target).closest('.claim-member-btn');
+        const target = e.target;
+        const btn = target && target.closest ? target.closest('.claim-member-btn') : null;
         if (!btn) return;
 
         const memberId = btn.getAttribute('data-member-id');
         if (memberId) {
+          btn.classList.add('border-primary', 'bg-primary/10');
           selectMember(memberId);
         }
       });

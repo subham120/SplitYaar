@@ -364,7 +364,7 @@ const todayIST = getTodayISTDate();
         const paidByMemberId = payerSelect.value;
         const category = hiddenCategory.value;
         const splitType = hiddenSplitType.value;
-        const dateInput = document.getElementById('exp-date') as HTMLInputElement | null;
+        const dateInput = document.getElementById('exp-date');
         const date = dateInput && dateInput.value ? dateInput.value : new Date().toISOString().split('T')[0];
 
         let finalShares = [];
