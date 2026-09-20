@@ -4,6 +4,7 @@ import SubNav from '../../components/SubNav.astro';
 import { getTripByCode } from '../../lib/store';
 import { formatINR, formatISTDate } from '../../lib/format';
 import { computeNetBalances } from '../../lib/settlement';
+import { generateQrCodeDataUrl } from '../../lib/upi';
 
 const { code } = Astro.params;
 
@@ -26,6 +27,15 @@ const totalSpendPaise = expenses.reduce((acc, curr) => acc + curr.amountPaise, 0
 const recentExpenses = [...expenses]
   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   .slice(0, 5);
+
+// Pre-generate trip invite QR code for instant modal display
+const inviteUrl = `${Astro.url.origin}/trip/${code}`;
+let inviteQrDataUrl = '';
+try {
+  inviteQrDataUrl = await generateQrCodeDataUrl(inviteUrl);
+} catch (e) {
+  console.error('Failed to generate invite QR code for trip', e);
+}
 ---
 
 <Layout title={`${trip.name} Dashboard — SplitYatra`} noindex={true}>
@@ -57,10 +67,10 @@ const recentExpenses = [...expenses]
             </p>
           </div>
           <div class="w-full md:w-auto bg-surface-pearl border border-hairline rounded-md p-sm flex items-center justify-between gap-md max-w-md">
-            <div class="truncate cursor-pointer group" id="share-link-box" title="Click to copy link">
+            <div class="truncate cursor-pointer group" id="share-link-box" title="Click to copy link and open QR code">
               <span class="text-[11px] uppercase text-ink-muted-48 block font-semibold flex items-center gap-xs">
                 <span>Share Trip Link</span>
-                <span id="copy-hint" class="text-[10px] text-primary font-normal lowercase opacity-0 group-hover:opacity-100 transition-opacity">click to copy</span>
+                <span id="copy-hint" class="text-[10px] text-primary font-normal lowercase opacity-0 group-hover:opacity-100 transition-opacity">click for QR</span>
               </span>
               <span class="font-mono text-caption text-ink font-semibold truncate block select-all" id="share-link-text">
                 Loading…
@@ -69,11 +79,11 @@ const recentExpenses = [...expenses]
             <div class="flex items-center gap-xs shrink-0">
               <button 
                 id="share-invite-btn"
-                class="bg-primary text-on-primary text-[12px] font-sans font-medium px-md py-xs rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer shrink-0 flex items-center gap-[4px]"
-                title="Copy trip invite link"
+                class="bg-primary text-on-primary text-[12px] font-sans font-medium px-md py-xs rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer shrink-0 flex items-center gap-[6px]"
+                title="Share & show QR code"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                <span id="share-btn-text">Share</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+                <span id="share-btn-text">Share & QR</span>
               </button>
               <a
                 id="whatsapp-share-btn"
@@ -222,48 +232,127 @@ const recentExpenses = [...expenses]
     </a>
   </div>
 
+  <!-- Trip Invite QR Code Modal -->
+  <div id="invite-qr-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-lg">
+    <div class="bg-white border border-hairline rounded-lg p-lg max-w-[380px] w-full text-center flex flex-col items-center shadow-2xl relative animate-fadeIn">
+      <!-- Close button inside modal -->
+      <button 
+        id="close-invite-modal-btn"
+        aria-label="Close modal"
+        class="absolute right-md top-md w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-ink flex items-center justify-center active:scale-90 transition-all select-none cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+
+      <span class="inline-block text-[11px] font-mono font-semibold bg-zinc-100 text-ink px-sm py-[2px] rounded-pill mb-xs border border-zinc-200">
+        Trip Code: {code}
+      </span>
+      <h3 class="text-display-md font-display font-semibold text-ink tracking-tight mb-xxs">
+        Scan to Join
+      </h3>
+      <p class="text-caption text-ink-muted-48 mb-md max-w-[280px]">
+        Friends can scan with their phone camera to join <strong class="text-ink font-semibold">{trip.name}</strong>
+      </p>
+
+      <!-- QR Code Container -->
+      <div class="bg-white border-2 border-zinc-100 rounded-lg p-sm mb-md w-[250px] h-[250px] flex items-center justify-center shadow-sm">
+        {inviteQrDataUrl ? (
+          <img id="invite-modal-qr-img" src={inviteQrDataUrl} alt={`QR code for ${trip.name}`} class="w-full h-full object-contain select-none" />
+        ) : (
+          <div class="text-caption text-ink-muted-48">Generating QR...</div>
+        )}
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="w-full flex items-center gap-xs mb-sm">
+        <button
+          id="modal-copy-link-btn"
+          type="button"
+          class="flex-1 bg-primary text-on-primary text-[13px] font-sans font-medium py-xs px-sm rounded-pill hover:bg-primary-focus active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-[6px]"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          <span id="modal-copy-btn-text">Copy Link</span>
+        </button>
+        <a
+          id="modal-whatsapp-btn"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex-1 bg-emerald-600 text-white text-[13px] font-sans font-medium py-xs px-sm rounded-pill hover:bg-emerald-700 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-[6px]"
+        >
+          <span>WhatsApp</span>
+        </a>
+      </div>
+
+      <p class="text-fine-print text-ink-muted-48 leading-relaxed max-w-[300px]">
+        No app install or login required. Works with any mobile camera or browser.
+      </p>
+    </div>
+  </div>
+
   <!-- Client-side Hydration Script -->
   <script define:vars={{ code, netBalances, members, tripName: trip.name }}>
     // Resolve identity
     const currentMemberId = localStorage.getItem(`split_yatra_member_${code}`);
     
-    // Set share link text and WhatsApp link
+    // Set share link text and WhatsApp links
     const fullUrl = `${window.location.origin}/trip/${code}`;
     const linkEl = document.getElementById('share-link-text');
     if (linkEl) {
       linkEl.textContent = fullUrl;
     }
 
+    const waText = encodeURIComponent(
+      `Hey! Join our "${tripName}" ledger on SplitYatra to split our bills: ${fullUrl} (Code: ${code})`
+    );
+    const waUrl = `https://api.whatsapp.com/send?text=${waText}`;
+
     const waBtn = document.getElementById('whatsapp-share-btn');
     if (waBtn) {
-      const waText = encodeURIComponent(
-        `Hey! Join our "${tripName}" ledger on SplitYatra to split our bills: ${fullUrl} (Code: ${code})`
-      );
-      waBtn.href = `https://api.whatsapp.com/send?text=${waText}`;
+      waBtn.href = waUrl;
     }
 
-    // Share & Copy Handler
-    async function handleShareOrCopy() {
-      const shareBtn = document.getElementById('share-invite-btn');
-      const shareBtnText = document.getElementById('share-btn-text');
+    const modalWaBtn = document.getElementById('modal-whatsapp-btn');
+    if (modalWaBtn) {
+      modalWaBtn.href = waUrl;
+    }
 
-      // 1. Try Native Web Share API first if supported
-      const shareData = {
-        title: `${tripName} — SplitYatra`,
-        text: `Hey! Join our "${tripName}" ledger on SplitYatra to split our bills:`,
-        url: fullUrl,
-      };
+    // Modal elements & state
+    const inviteModal = document.getElementById('invite-qr-modal');
+    const closeInviteModalBtn = document.getElementById('close-invite-modal-btn');
+    const modalCopyBtn = document.getElementById('modal-copy-link-btn');
+    const modalCopyBtnText = document.getElementById('modal-copy-btn-text');
 
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-        try {
-          await navigator.share(shareData);
-          return;
-        } catch (err) {
-          if (err && err.name === 'AbortError') return;
-        }
+    function openInviteModal() {
+      if (inviteModal) {
+        inviteModal.classList.remove('hidden');
       }
+    }
 
-      // 2. Clipboard copy fallback
+    function closeInviteModal() {
+      if (inviteModal) {
+        inviteModal.classList.add('hidden');
+      }
+    }
+
+    if (closeInviteModalBtn) {
+      closeInviteModalBtn.addEventListener('click', closeInviteModal);
+    }
+    if (inviteModal) {
+      inviteModal.addEventListener('click', (e) => {
+        if (e.target === inviteModal) {
+          closeInviteModal();
+        }
+      });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeInviteModal();
+      }
+    });
+
+    // Copy to clipboard helper
+    async function copyToClipboard(onSuccess) {
       try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(fullUrl);
@@ -278,22 +367,51 @@ const recentExpenses = [...expenses]
           document.execCommand('copy');
           document.body.removeChild(textArea);
         }
+        if (onSuccess) onSuccess();
+      } catch (err) {
+        console.error('Failed to copy link:', err);
+      }
+    }
 
-        // Show instant visual confirmation
+    // Modal Copy Link Button handler
+    if (modalCopyBtn && modalCopyBtnText) {
+      modalCopyBtn.addEventListener('click', () => {
+        copyToClipboard(() => {
+          modalCopyBtnText.textContent = 'Copied! ✓';
+          modalCopyBtn.classList.remove('bg-primary', 'hover:bg-primary-focus');
+          modalCopyBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+
+          setTimeout(() => {
+            modalCopyBtnText.textContent = 'Copy Link';
+            modalCopyBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+            modalCopyBtn.classList.add('bg-primary', 'hover:bg-primary-focus');
+          }, 2000);
+        });
+      });
+    }
+
+    // Share & Copy Handler (Dashboard button & box)
+    async function handleShareOrCopy() {
+      const shareBtn = document.getElementById('share-invite-btn');
+      const shareBtnText = document.getElementById('share-btn-text');
+
+      // 1. Copy link immediately
+      copyToClipboard(() => {
         if (shareBtnText && shareBtn) {
           shareBtnText.textContent = 'Copied! ✓';
           shareBtn.classList.remove('bg-primary', 'hover:bg-primary-focus');
           shareBtn.classList.add('bg-green-600', 'hover:bg-green-700');
 
           setTimeout(() => {
-            shareBtnText.textContent = 'Share';
+            shareBtnText.textContent = 'Share & QR';
             shareBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
             shareBtn.classList.add('bg-primary', 'hover:bg-primary-focus');
           }, 2000);
         }
-      } catch (err) {
-        console.error('Failed to copy link:', err);
-      }
+      });
+
+      // 2. Open QR Code Modal
+      openInviteModal();
     }
 
     const shareBtn = document.getElementById('share-invite-btn');

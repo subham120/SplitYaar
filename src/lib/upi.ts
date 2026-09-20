@@ -19,14 +19,14 @@ export function buildUpiLink(
 }
 
 /**
- * Generates a base64 Data URL (PNG) representing a QR Code of the UPI link
- * for desktop screens/scanning.
+ * Generates a base64 Data URL (PNG) representing a QR Code of any link or text
+ * for screens/scanning.
  */
-export async function generateQrCodeDataUrl(upiLink: string): Promise<string> {
+export async function generateQrCodeDataUrl(text: string): Promise<string> {
   try {
-    const dataUrl = await QRCode.toDataURL(upiLink, {
+    const dataUrl = await QRCode.toDataURL(text, {
       margin: 2,
-      width: 300,
+      width: 320,
       color: {
         dark: '#1d1d1f', // Match Apple design "ink" color
         light: '#ffffff',
@@ -34,7 +34,7 @@ export async function generateQrCodeDataUrl(upiLink: string): Promise<string> {
     });
     return dataUrl;
   } catch (error) {
-    console.error('Failed to generate UPI QR code:', error);
+    console.error('Failed to generate QR code:', error);
     throw new Error('QR Code generation failed');
   }
 }
