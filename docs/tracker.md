@@ -120,3 +120,4 @@ Living document to track progress against `implementation.md`. Update status as 
 |---|---|
 | Initial creation | Tracker created alongside `prd.md`, `trd.md`, `appflow.md`, `schema.md`, `implementation.md`, `rules.md` |
 | Phase 7 | Replaced `db.json` store with Neon Postgres; added `scripts/migrate.sql`, `.env.example`, `vercel.json`, `.npmrc`; fixed `.vercel/` gitignore; successfully deployed to Vercel ✅ |
+| Post-launch | Added Trip Invite QR Code Modal to Share button with instant clipboard copy & WhatsApp sharing |
