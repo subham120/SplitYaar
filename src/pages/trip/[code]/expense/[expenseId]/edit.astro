@@ -73,6 +73,7 @@ const expenseShares = allShares.filter((s) => s.expenseId === expenseId);
             required
             step="0.01"
             min="0.01"
+            onwheel="this.blur()"
             class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[11px] focus:outline-none focus:border-primary placeholder:text-zinc-300"
           />
         </div>
@@ -237,6 +238,7 @@ const expenseShares = allShares.filter((s) => s.expenseId === expenseId);
                       value={shareVal}
                       placeholder="0.00"
                       data-member-id={m.id}
+                      onwheel="this.blur()"
                       class="custom-member-input w-full bg-white text-ink text-right font-sans text-caption border border-hairline rounded-pill pl-md pr-xs py-[6px] focus:outline-none focus:border-primary placeholder:text-zinc-200"
                     />
                   </div>
@@ -269,6 +271,54 @@ const expenseShares = allShares.filter((s) => s.expenseId === expenseId);
         <!-- Error Message -->
         <p id="error-msg" class="hidden text-caption text-red-600 bg-red-50 border border-red-200 rounded-sm p-sm mt-xs"></p>
       </form>
+    </div>
+  </div>
+
+  <!-- Delete Expense Confirmation Modal -->
+  <div 
+    id="delete-confirm-modal" 
+    class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-lg"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="delete-confirm-title"
+  >
+    <div class="bg-white border border-hairline rounded-lg p-lg max-w-[380px] w-full text-center flex flex-col items-center shadow-2xl relative animate-fadeIn">
+      <!-- Close button inside modal -->
+      <button 
+        id="close-delete-modal-btn"
+        aria-label="Close modal"
+        class="absolute right-md top-md w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-ink flex items-center justify-center active:scale-90 transition-all select-none cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+
+      <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xl mb-sm font-bold">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+      </div>
+      <h3 id="delete-confirm-title" class="text-body-strong font-semibold text-ink text-[18px] mb-xxs">
+        Delete Expense?
+      </h3>
+      <p class="text-caption text-ink-muted-48 mb-lg leading-relaxed">
+        Are you sure you want to delete this expense? This will recalculate everyone's balances.
+      </p>
+
+      <div class="flex items-center gap-sm w-full">
+        <button
+          id="cancel-delete-modal-btn"
+          type="button"
+          class="flex-1 bg-zinc-100 hover:bg-zinc-200 text-ink text-[13px] font-sans font-medium py-[10px] px-md rounded-pill transition-all cursor-pointer select-none"
+        >
+          Cancel
+        </button>
+        <button
+          id="confirm-delete-action-btn"
+          type="button"
+          class="flex-1 bg-red-600 hover:bg-red-700 text-white text-[13px] font-sans font-semibold py-[10px] px-md rounded-pill transition-all cursor-pointer flex items-center justify-center gap-xs shadow-xs select-none"
+        >
+          <span id="confirm-delete-btn-text">Delete</span>
+        </button>
+      </div>
+      <p id="delete-modal-error" class="hidden text-caption text-red-600 bg-red-50 border border-red-200 rounded-sm p-xs mt-xs w-full text-center"></p>
     </div>
   </div>
 
@@ -506,16 +556,53 @@ const expenseShares = allShares.filter((s) => s.expenseId === expenseId);
       });
     }
 
-    // Expense Deletion (DELETE /api/trips/[id]/expenses/[expenseId])
+    // Expense Deletion Modal & Action
     const deleteBtn = document.getElementById('delete-btn');
-    if (deleteBtn && mainError) {
-      deleteBtn.addEventListener('click', async () => {
-        const confirmDel = confirm('Delete this expense? This will recalculate everyone\'s balances.');
-        if (!confirmDel) return;
+    const deleteModal = document.getElementById('delete-confirm-modal');
+    const closeDeleteModalBtn = document.getElementById('close-delete-modal-btn');
+    const cancelDeleteModalBtn = document.getElementById('cancel-delete-modal-btn');
+    const confirmDeleteActionBtn = document.getElementById('confirm-delete-action-btn');
+    const confirmDeleteBtnText = document.getElementById('confirm-delete-btn-text');
+    const deleteModalError = document.getElementById('delete-modal-error');
 
-        deleteBtn.disabled = true;
-        deleteBtn.textContent = 'Deleting...';
-        mainError.classList.add('hidden');
+    function openDeleteModal() {
+      if (deleteModal) {
+        if (deleteModalError) deleteModalError.classList.add('hidden');
+        deleteModal.classList.remove('hidden');
+      }
+    }
+
+    function closeDeleteModal() {
+      if (deleteModal) {
+        deleteModal.classList.add('hidden');
+      }
+    }
+
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', openDeleteModal);
+    }
+    if (closeDeleteModalBtn) {
+      closeDeleteModalBtn.addEventListener('click', closeDeleteModal);
+    }
+    if (cancelDeleteModalBtn) {
+      cancelDeleteModalBtn.addEventListener('click', closeDeleteModal);
+    }
+    if (deleteModal) {
+      deleteModal.addEventListener('click', (e) => {
+        if (e.target === deleteModal) closeDeleteModal();
+      });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && deleteModal && !deleteModal.classList.contains('hidden')) {
+        closeDeleteModal();
+      }
+    });
+
+    if (confirmDeleteActionBtn) {
+      confirmDeleteActionBtn.addEventListener('click', async () => {
+        confirmDeleteActionBtn.disabled = true;
+        if (confirmDeleteBtnText) confirmDeleteBtnText.textContent = 'Deleting…';
+        if (deleteModalError) deleteModalError.classList.add('hidden');
 
         try {
           const res = await fetch(`/api/trips/${code}/expenses/${expenseId}`, {
@@ -529,10 +616,12 @@ const expenseShares = allShares.filter((s) => s.expenseId === expenseId);
 
           window.location.href = `/trip/${code}`;
         } catch (error) {
-          deleteBtn.disabled = false;
-          deleteBtn.textContent = 'Delete Expense';
-          mainError.textContent = error.message || 'An error occurred while deleting';
-          mainError.classList.remove('hidden');
+          confirmDeleteActionBtn.disabled = false;
+          if (confirmDeleteBtnText) confirmDeleteBtnText.textContent = 'Delete';
+          if (deleteModalError) {
+            deleteModalError.textContent = (error && error.message) ? error.message : 'An error occurred while deleting';
+            deleteModalError.classList.remove('hidden');
+          }
         }
       });
     }

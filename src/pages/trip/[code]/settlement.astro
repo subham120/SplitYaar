@@ -2,7 +2,7 @@
 import Layout from '../../../layouts/Layout.astro';
 import SubNav from '../../../components/SubNav.astro';
 import { getTripByCode } from '../../../lib/store';
-import { formatINR } from '../../../lib/format';
+import { formatINR, formatISTDate } from '../../../lib/format';
 import { computeNetBalances, simplifyDebts } from '../../../lib/settlement';
 import { buildUpiLink, generateQrCodeDataUrl } from '../../../lib/upi';
 
@@ -17,8 +17,8 @@ if (!tripData) {
   return Astro.redirect('/');
 }
 
-const { trip, members, expenses, shares } = tripData;
-const netBalances = computeNetBalances(members, expenses, shares);
+const { trip, members, expenses, shares, settlements } = tripData;
+const netBalances = computeNetBalances(members, expenses, shares, settlements);
 const rawTransactions = simplifyDebts(netBalances);
 
 // Enrich transactions with member details, UPI links, and QR codes
@@ -120,16 +120,24 @@ const transactions = await Promise.all(
                     </div>
 
                     <!-- Actions -->
-                    <div class="flex items-center gap-sm shrink-0">
-                      <!-- Visual Settlement Checkbox -->
-                      <label class="flex items-center gap-[6px] text-caption font-medium select-none cursor-pointer">
-                        <input
-                          type="checkbox"
-                          class="settle-checklist-cb w-4 h-4 rounded-xs border-hairline text-primary focus:ring-primary cursor-pointer"
-                          data-target-row={idx}
-                        />
-                        <span class="text-ink-muted-48 checkbox-label">Paid</span>
-                      </label>
+                    <div class="flex items-center gap-xs sm:gap-sm shrink-0">
+                      <!-- Record Paid Button (Only enabled for the receiver or admin) -->
+                      <div class="relative">
+                        <button
+                          type="button"
+                          class="record-payment-btn border border-emerald-600/80 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 active:scale-95 text-[12px] font-sans font-semibold px-md py-xs rounded-pill transition-all cursor-pointer flex items-center gap-[4px] select-none shrink-0"
+                          data-from-id={tx.fromMemberId}
+                          data-to-id={tx.toMemberId}
+                          data-from-name={tx.fromName}
+                          data-to-name={tx.toName}
+                          data-amount-paise={tx.amountPaise}
+                          data-amount-str={formatINR(tx.amountPaise)}
+                          title={`Only ${tx.toName} can confirm receiving this payment`}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                          <span class="record-btn-text">Mark Received</span>
+                        </button>
+                      </div>
 
                       <!-- Pay Button (Mobile UPI or desktop modal launcher) -->
                       {tx.toUpiId ? (
@@ -161,6 +169,111 @@ const transactions = await Promise.all(
         </div>
       )}
 
+      <!-- Past Recorded Settlements (if any) -->
+      {settlements.length > 0 && (
+        <div class="bg-white border border-hairline rounded-lg p-lg shadow-sm">
+          <h2 class="text-body-strong font-semibold text-ink mb-xxs">Recorded Settlements</h2>
+          <p class="text-caption text-ink-muted-48 leading-relaxed mb-md">
+            Direct peer-to-peer repayments confirmed in this trip.
+          </p>
+
+          <div class="space-y-sm">
+            {settlements.map((s) => {
+              const fromM = members.find((m) => m.id === s.fromMemberId);
+              const toM = members.find((m) => m.id === s.toMemberId);
+              const fromName = fromM?.name ?? 'Unknown';
+              const toName = toM?.name ?? 'Unknown';
+
+              return (
+                <div class="flex items-center justify-between p-sm bg-emerald-50/60 border border-emerald-200/60 rounded-md">
+                  <div class="truncate pr-sm">
+                    <div class="text-body-strong text-ink font-semibold flex items-center gap-xs">
+                      <span>{fromName}</span>
+                      <span class="text-emerald-600 font-normal">&rarr;</span>
+                      <span class="text-emerald-700">{toName}</span>
+                    </div>
+                    <span class="text-fine-print text-ink-muted-48 block mt-[2px]">
+                      Confirmed on {formatISTDate(s.date)}
+                    </span>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <span class="text-body-strong font-bold text-emerald-700 tabular-nums block">
+                      {formatINR(s.amountPaise)}
+                    </span>
+                    <span class="text-[10px] uppercase font-bold text-emerald-800 bg-emerald-100 px-[6px] py-[2px] rounded-xs inline-block mt-[2px]">
+                      Settled ✓
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+    </div>
+  </div>
+
+  <!-- Confirm Settlement Payment Modal -->
+  <div 
+    id="confirm-settle-modal" 
+    class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-lg"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="confirm-settle-title"
+  >
+    <div class="bg-white border border-hairline rounded-lg p-lg max-w-[380px] w-full text-center flex flex-col items-center shadow-2xl relative animate-fadeIn">
+      <!-- Close button inside modal -->
+      <button 
+        id="close-confirm-settle-btn"
+        aria-label="Close modal"
+        class="absolute right-md top-md w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-ink flex items-center justify-center active:scale-90 transition-all select-none cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+
+      <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl mb-sm font-bold">
+        ✓
+      </div>
+      <h3 id="confirm-settle-title" class="text-body-strong font-semibold text-ink text-[18px] mb-xxs">
+        Confirm Payment Received
+      </h3>
+      <p class="text-caption text-ink-muted-48 mb-md leading-relaxed">
+        Verify that you have received this payment via UPI/Cash to officially clear this debt from the trip ledger.
+      </p>
+
+      <div class="w-full bg-surface-pearl border border-hairline rounded-md p-md mb-md text-left space-y-xs text-caption">
+        <div class="flex items-center justify-between">
+          <span class="text-ink-muted-48">Payer:</span>
+          <span class="font-semibold text-ink" id="confirm-payer-name">-</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-ink-muted-48">Paid To:</span>
+          <span class="font-semibold text-ink" id="confirm-receiver-name">-</span>
+        </div>
+        <div class="flex items-center justify-between text-body font-semibold border-t border-divider-soft pt-xs mt-xs">
+          <span class="text-ink">Amount:</span>
+          <span class="text-emerald-600 tabular-nums font-bold" id="confirm-settle-amount">-</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-sm w-full">
+        <button
+          id="cancel-settle-btn"
+          type="button"
+          class="flex-1 bg-zinc-100 hover:bg-zinc-200 text-ink text-[13px] font-sans font-medium py-[9px] px-md rounded-pill transition-all cursor-pointer"
+        >
+          Cancel
+        </button>
+        <button
+          id="submit-settle-btn"
+          type="button"
+          class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-sans font-semibold py-[9px] px-md rounded-pill transition-all cursor-pointer flex items-center justify-center gap-xs shadow-xs"
+        >
+          <span id="submit-settle-btn-text">Confirm & Settle</span>
+        </button>
+      </div>
+      <p id="confirm-settle-error" class="hidden text-caption text-red-600 bg-red-50 border border-red-200 rounded-sm p-xs mt-xs w-full text-center"></p>
     </div>
   </div>
 
@@ -190,32 +303,159 @@ const transactions = await Promise.all(
     </div>
   </div>
 
-  <!-- Client-side Interactive Modal & Nudge actions -->
-  <script>
-    // Checklist toggles
-    document.addEventListener('change', (e) => {
-      const cb = e.target as HTMLInputElement;
-      if (cb && cb.classList.contains('settle-checklist-cb')) {
-        const row = cb.closest('.settlement-row');
-        const label = row?.querySelector('.checkbox-label');
-        
-        if (row && label) {
-          if (cb.checked) {
-            row.classList.add('opacity-50', 'line-through');
-            label.textContent = 'Settled';
-            label.classList.replace('text-ink-muted-48', 'text-green-600');
-          } else {
-            row.classList.remove('opacity-50', 'line-through');
-            label.textContent = 'Paid';
-            label.classList.replace('text-green-600', 'text-ink-muted-48');
-          }
-        }
+  <!-- Client-side Interactive Modal, Settle Recording & Nudge actions -->
+  <script define:vars={{ code, tripCreatorId: trip.createdByMemberId }}>
+    // Retrieve current logged in member identity from localStorage
+    const currentMemberId = localStorage.getItem(`split_yatra_member_${code}`);
+    // Confirm Settlement Modal & Recording Logic
+    const confirmModal = document.getElementById('confirm-settle-modal');
+    const closeConfirmBtn = document.getElementById('close-confirm-settle-btn');
+    const cancelConfirmBtn = document.getElementById('cancel-settle-btn');
+    const submitSettleBtn = document.getElementById('submit-settle-btn');
+    const submitSettleBtnText = document.getElementById('submit-settle-btn-text');
+    const confirmPayerName = document.getElementById('confirm-payer-name');
+    const confirmReceiverName = document.getElementById('confirm-receiver-name');
+    const confirmSettleAmount = document.getElementById('confirm-settle-amount');
+    const confirmSettleError = document.getElementById('confirm-settle-error');
+
+    let activeSettleData = null;
+
+    function openConfirmModal(data) {
+      activeSettleData = data;
+      if (confirmPayerName) confirmPayerName.textContent = data.fromName;
+      if (confirmReceiverName) confirmReceiverName.textContent = data.toName;
+      if (confirmSettleAmount) confirmSettleAmount.textContent = data.amountStr;
+      if (confirmSettleError) confirmSettleError.classList.add('hidden');
+      if (submitSettleBtn) submitSettleBtn.disabled = false;
+      if (submitSettleBtnText) submitSettleBtnText.textContent = 'Confirm & Settle';
+      if (confirmModal) confirmModal.classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+      if (confirmModal) confirmModal.classList.add('hidden');
+      activeSettleData = null;
+    }
+
+    if (closeConfirmBtn) closeConfirmBtn.addEventListener('click', closeConfirmModal);
+    if (cancelConfirmBtn) cancelConfirmBtn.addEventListener('click', closeConfirmModal);
+    if (confirmModal) {
+      confirmModal.addEventListener('click', (e) => {
+        if (e.target === confirmModal) closeConfirmModal();
+      });
+    }
+
+    // Adapt Settlement buttons based on current member identity (Receiver-Only authenticity)
+    const settleButtons = document.querySelectorAll('.record-payment-btn');
+    settleButtons.forEach((btn) => {
+      const toId = btn.getAttribute('data-to-id');
+      const fromId = btn.getAttribute('data-from-id');
+      const toName = btn.getAttribute('data-to-name') || 'the recipient';
+
+      const isReceiver = currentMemberId && currentMemberId === toId;
+      const isCreator = currentMemberId && currentMemberId === tripCreatorId;
+      const isPayer = currentMemberId && currentMemberId === fromId;
+
+      const textSpan = btn.querySelector('.record-btn-text');
+
+      if (isReceiver || isCreator) {
+        // Authorized recipient: Can confirm & settle
+        btn.classList.add('cursor-pointer');
+        btn.setAttribute('title', `Confirm you received this payment`);
+        if (textSpan) textSpan.textContent = 'Mark Received';
+      } else if (isPayer) {
+        // Debtor/Payer: Cannot self-clear the debt! Must be confirmed by receiver
+        btn.classList.remove('bg-emerald-50', 'text-emerald-700', 'border-emerald-600/80', 'hover:bg-emerald-100');
+        btn.classList.add('bg-zinc-100', 'text-zinc-500', 'border-zinc-300', 'hover:bg-zinc-100');
+        btn.setAttribute('data-disabled-role', 'payer');
+        btn.setAttribute('title', `Only ${toName} can confirm receiving this payment`);
+        if (textSpan) textSpan.textContent = 'Confirm Pending';
+      } else {
+        // Non-participating third-party member
+        btn.classList.remove('bg-emerald-50', 'text-emerald-700', 'border-emerald-600/80', 'hover:bg-emerald-100');
+        btn.classList.add('bg-zinc-100', 'text-zinc-500', 'border-zinc-300', 'hover:bg-zinc-100');
+        btn.setAttribute('data-disabled-role', 'viewer');
+        btn.setAttribute('title', `Only ${toName} can confirm receiving this payment`);
+        if (textSpan) textSpan.textContent = 'Mark Received';
       }
     });
 
+    // Click on Record Paid / Mark Received button
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.record-payment-btn');
+      if (!btn) return;
+
+      const disabledRole = btn.getAttribute('data-disabled-role');
+      const toName = btn.getAttribute('data-to-name') || 'the recipient';
+
+      if (disabledRole === 'payer') {
+        alert(`Authenticity Notice: Only ${toName} can confirm receiving your payment. Once you pay via UPI/cash, ask ${toName} to click 'Mark Received'.`);
+        return;
+      }
+
+      if (disabledRole === 'viewer') {
+        alert(`Only ${toName} (the recipient) or the trip admin can confirm receiving this payment.`);
+        return;
+      }
+
+      const fromMemberId = btn.getAttribute('data-from-id');
+      const toMemberId = btn.getAttribute('data-to-id');
+      const fromName = btn.getAttribute('data-from-name') || '';
+      const amountPaise = parseInt(btn.getAttribute('data-amount-paise') || '0', 10);
+      const amountStr = btn.getAttribute('data-amount-str') || '';
+
+      if (fromMemberId && toMemberId && amountPaise > 0) {
+        openConfirmModal({
+          fromMemberId,
+          toMemberId,
+          fromName,
+          toName,
+          amountPaise,
+          amountStr,
+        });
+      }
+    });
+
+    if (submitSettleBtn) {
+      submitSettleBtn.addEventListener('click', async () => {
+        if (!activeSettleData) return;
+
+        submitSettleBtn.disabled = true;
+        if (submitSettleBtnText) submitSettleBtnText.textContent = 'Recording…';
+        if (confirmSettleError) confirmSettleError.classList.add('hidden');
+
+        try {
+          const res = await fetch(`/api/trips/${code}/settlement`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fromMemberId: activeSettleData.fromMemberId,
+              toMemberId: activeSettleData.toMemberId,
+              amountPaise: activeSettleData.amountPaise,
+              recordedByMemberId: currentMemberId || undefined,
+            }),
+          });
+
+          const result = await res.json();
+          if (!res.ok) {
+            throw new Error(result.error || 'Failed to record settlement');
+          }
+
+          // Reload page to reflect cleared debt and show "Everyone is Settled!"
+          window.location.reload();
+        } catch (err) {
+          submitSettleBtn.disabled = false;
+          if (submitSettleBtnText) submitSettleBtnText.textContent = 'Confirm & Settle';
+          if (confirmSettleError) {
+            confirmSettleError.textContent = (err && err.message) ? err.message : 'Failed to record payment';
+            confirmSettleError.classList.remove('hidden');
+          }
+        }
+      });
+    }
+
     // Pay UPI actions (Mobile vs Desktop)
     const modal = document.getElementById('qr-modal');
-    const modalQr = document.getElementById('modal-qr-img') as HTMLImageElement | null;
+    const modalQr = document.getElementById('modal-qr-img');
     const modalPayee = document.getElementById('modal-payee-title');
     const modalAmount = document.getElementById('modal-amount-title');
     const closeModalBtn = document.getElementById('close-modal-btn');
@@ -225,7 +465,7 @@ const transactions = await Promise.all(
     }
 
     document.addEventListener('click', (e) => {
-      const btn = (e.target as HTMLElement).closest('.pay-btn');
+      const btn = e.target.closest('.pay-btn');
       if (!btn) return;
 
       const upiLink = btn.getAttribute('data-upi-link') || '';
@@ -261,7 +501,7 @@ const transactions = await Promise.all(
 
     // Nudge UPI Actions (nudge missing payee UPI configurations)
     document.addEventListener('click', (e) => {
-      const btn = (e.target as HTMLElement).closest('.nudge-btn');
+      const btn = e.target.closest('.nudge-btn');
       if (!btn) return;
 
       const payeeName = btn.getAttribute('data-payee-name') || '';
@@ -272,3 +512,4 @@ const transactions = await Promise.all(
     });
   </script>
 </Layout>
+

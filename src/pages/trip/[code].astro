@@ -17,10 +17,10 @@ if (!tripData) {
   return Astro.redirect('/trip/new'); // fallback if code doesn't exist
 }
 
-const { trip, members, expenses, shares } = tripData;
-const netBalances = computeNetBalances(members, expenses, shares);
+const { trip, members, expenses, shares, settlements } = tripData;
+const netBalances = computeNetBalances(members, expenses, shares, settlements);
 
-// Calculate total trip spending
+// Calculate total trip spending (expenses only - pure genuine costs)
 const totalSpendPaise = expenses.reduce((acc, curr) => acc + curr.amountPaise, 0);
 
 // Get last 5 expenses
@@ -102,6 +102,74 @@ try {
           </div>
         </div>
 
+        <!-- Add Member Card on Dashboard (Visible immediately if only 1 member or when toggled) -->
+        <div 
+          id="dash-add-member-container" 
+          class={`bg-white border-2 border-primary/20 rounded-lg p-lg shadow-sm transition-all ${members.length === 1 ? '' : 'hidden'}`}
+        >
+          <div class="flex items-start justify-between gap-md mb-sm">
+            <div class="flex items-center gap-sm">
+              <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+              </div>
+              <div>
+                <div class="flex items-center gap-xs">
+                  <h3 class="text-body-strong font-semibold text-ink text-[16px] sm:text-[17px]">Add New Member</h3>
+                  {members.length === 1 && (
+                    <span id="first-member-pill" class="text-fine-print bg-amber-100 text-amber-800 font-semibold px-xs py-[2px] rounded-xs uppercase tracking-wider text-[10px]">First Step</span>
+                  )}
+                </div>
+                <p id="dash-member-desc" class="text-caption text-ink-muted-48 mt-[2px]">
+                  {members.length === 1 
+                    ? "You are currently the only member. Add your friends to start splitting expenses!" 
+                    : "Add another member to this trip."}
+                </p>
+              </div>
+            </div>
+            <button
+              id="close-dash-member-btn"
+              type="button"
+              class="text-ink-muted-48 hover:text-ink text-caption font-medium cursor-pointer p-xs rounded-full hover:bg-zinc-100 transition-colors"
+              title="Hide form"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </div>
+
+          <!-- Quick Add Member Form -->
+          <form id="dash-add-member-form" class="mt-md space-y-sm">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-xs">
+              <input
+                type="text"
+                id="dash-member-name-input"
+                name="name"
+                placeholder="Friend's name (e.g. Sneha)"
+                required
+                maxlength="30"
+                autocomplete="off"
+                class="flex-1 bg-surface-pearl text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[10px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-zinc-400 transition-all"
+              />
+              <input
+                type="text"
+                id="dash-member-upi-input"
+                name="upiId"
+                placeholder="UPI ID (optional)"
+                autocomplete="off"
+                class="sm:w-44 bg-surface-pearl text-ink font-sans text-body border border-hairline rounded-pill px-md py-[10px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-zinc-400 transition-all"
+              />
+              <button
+                type="submit"
+                id="dash-add-member-btn"
+                class="bg-primary text-on-primary font-sans font-medium text-body px-lg py-[10px] rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer text-center shrink-0 flex items-center justify-center gap-[6px] shadow-xs"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                <span id="dash-add-member-btn-text">Add Member</span>
+              </button>
+            </div>
+            <p id="dash-member-alert" class="hidden text-caption text-red-600 bg-red-50 border border-red-200 rounded-sm p-xs mt-xs"></p>
+          </form>
+        </div>
+
         <!-- Personal Balance Banner (Hydrated on Client) -->
         <div id="personal-balance-card" class="bg-white border border-hairline rounded-lg p-lg shadow-sm animate-pulse">
           <div class="h-16 bg-zinc-100 rounded-md"></div>
@@ -109,7 +177,20 @@ try {
 
         <!-- Group Member Ledger -->
         <div class="bg-white border border-hairline rounded-lg p-lg shadow-sm">
-          <h2 class="text-body-strong font-semibold text-ink mb-md">Trip Ledger</h2>
+          <div class="flex items-center justify-between mb-md">
+            <div class="flex items-center gap-xs">
+              <h2 class="text-body-strong font-semibold text-ink">Trip Ledger</h2>
+              <span class="text-caption text-ink-muted-48 font-medium">({members.length})</span>
+            </div>
+            <button
+              id="dash-open-add-member-btn"
+              type="button"
+              class="text-[12px] font-sans font-medium text-primary hover:text-primary-focus bg-primary/10 hover:bg-primary/20 px-md py-[5px] rounded-pill transition-all cursor-pointer flex items-center gap-[4px] active:scale-95 select-none"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              <span>Add Member</span>
+            </button>
+          </div>
           <div class="space-y-sm">
             {netBalances.map((mBal) => {
               const member = members.find((m) => m.id === mBal.memberId);
@@ -171,12 +252,22 @@ try {
               <div class="text-center py-xl text-ink-muted-48 flex flex-col items-center">
                 <span class="text-[44px] mb-xs">💸</span>
                 <p class="text-caption">No expenses recorded yet.</p>
-                <a 
-                  href={`/trip/${code}/expense/new`}
-                  class="text-primary text-caption mt-sm font-semibold hover:underline"
-                >
-                  Add your first expense
-                </a>
+                {members.length === 1 ? (
+                  <button
+                    id="dash-quick-add-member-prompt"
+                    type="button"
+                    class="text-primary text-caption mt-sm font-semibold hover:underline cursor-pointer select-none"
+                  >
+                    + Add a member first to split expenses
+                  </button>
+                ) : (
+                  <a 
+                    href={`/trip/${code}/expense/new`}
+                    class="text-primary text-caption mt-sm font-semibold hover:underline"
+                  >
+                    Add your first expense
+                  </a>
+                )}
               </div>
             ) : (
               <div class="space-y-md">
@@ -253,9 +344,21 @@ try {
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
 
-      <span class="inline-block text-[11px] font-mono font-semibold bg-zinc-100 text-ink px-sm py-[2px] rounded-pill mb-xs border border-zinc-200">
-        Trip Code: {code}
-      </span>
+      <!-- Prominent Trip Code with Dedicated Copy Button -->
+      <div class="inline-flex items-center gap-xs bg-surface-pearl border border-hairline rounded-pill px-md py-[6px] mb-xs shadow-xs">
+        <span class="text-[11px] uppercase text-ink-muted-48 font-semibold tracking-wider">Code:</span>
+        <span class="font-mono text-[17px] sm:text-[19px] font-bold text-ink tracking-widest leading-none select-all" id="modal-trip-code-val">{code}</span>
+        <button
+          id="copy-trip-code-btn"
+          type="button"
+          class="ml-[4px] bg-zinc-200 hover:bg-zinc-300 active:scale-95 text-ink text-[11px] font-sans font-semibold px-sm py-[3px] rounded-xs flex items-center gap-[3px] transition-all cursor-pointer select-none"
+          title="Copy 8-character Trip Code"
+          aria-label="Copy 8-character trip code"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          <span id="copy-code-btn-text">Copy</span>
+        </button>
+      </div>
       <h3 id="invite-modal-title" class="text-display-md font-display font-semibold text-ink tracking-tight mb-xxs">
         Scan to Join
       </h3>
@@ -369,6 +472,7 @@ try {
     // Active timer references for feedback debouncing
     let shareFeedbackTimer = null;
     let modalFeedbackTimer = null;
+    let codeFeedbackTimer = null;
 
     // Robust Clipboard Helper with execCommand catch fallback
     function fallbackCopy(text, onSuccess) {
@@ -388,24 +492,45 @@ try {
       }
     }
 
-    async function copyToClipboard(onSuccess) {
+    async function copyToClipboard(textToCopy, onSuccess) {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
-          await navigator.clipboard.writeText(joinUrl);
+          await navigator.clipboard.writeText(textToCopy);
           if (onSuccess) onSuccess();
         } catch (err) {
           console.warn('Clipboard writeText failed, attempting execCommand fallback:', err);
-          fallbackCopy(joinUrl, onSuccess);
+          fallbackCopy(textToCopy, onSuccess);
         }
       } else {
-        fallbackCopy(joinUrl, onSuccess);
+        fallbackCopy(textToCopy, onSuccess);
       }
+    }
+
+    // Modal Copy Trip Code handler
+    const copyCodeBtn = document.getElementById('copy-trip-code-btn');
+    const copyCodeBtnText = document.getElementById('copy-code-btn-text');
+    if (copyCodeBtn && copyCodeBtnText) {
+      copyCodeBtn.addEventListener('click', () => {
+        copyToClipboard(code, () => {
+          if (codeFeedbackTimer) clearTimeout(codeFeedbackTimer);
+          copyCodeBtnText.textContent = 'Copied! ✓';
+          copyCodeBtn.classList.remove('bg-zinc-200', 'hover:bg-zinc-300');
+          copyCodeBtn.classList.add('bg-green-600', 'text-white');
+
+          codeFeedbackTimer = setTimeout(() => {
+            copyCodeBtnText.textContent = 'Copy';
+            copyCodeBtn.classList.remove('bg-green-600', 'text-white');
+            copyCodeBtn.classList.add('bg-zinc-200', 'hover:bg-zinc-300');
+            codeFeedbackTimer = null;
+          }, 2000);
+        });
+      });
     }
 
     // Modal Copy Link Button handler
     if (modalCopyBtn && modalCopyBtnText) {
       modalCopyBtn.addEventListener('click', () => {
-        copyToClipboard(() => {
+        copyToClipboard(joinUrl, () => {
           if (modalFeedbackTimer) clearTimeout(modalFeedbackTimer);
           modalCopyBtnText.textContent = 'Copied! ✓';
           modalCopyBtn.classList.remove('bg-primary', 'hover:bg-primary-focus');
@@ -427,7 +552,7 @@ try {
       const shareBtnText = document.getElementById('share-btn-text');
 
       // 1. Copy link immediately
-      copyToClipboard(() => {
+      copyToClipboard(joinUrl, () => {
         if (shareBtnText && shareBtn) {
           if (shareFeedbackTimer) clearTimeout(shareFeedbackTimer);
           shareBtnText.textContent = 'Copied! ✓';
@@ -529,6 +654,86 @@ try {
 
       personalCard.className = "bg-white border border-hairline rounded-lg p-lg shadow-sm";
       personalCard.innerHTML = markup;
+    }
+
+    // Add Member on Dashboard controls
+    const dashAddMemberContainer = document.getElementById('dash-add-member-container');
+    const dashOpenAddMemberBtn = document.getElementById('dash-open-add-member-btn');
+    const dashQuickAddMemberPrompt = document.getElementById('dash-quick-add-member-prompt');
+    const closeDashMemberBtn = document.getElementById('close-dash-member-btn');
+    const dashAddMemberForm = document.getElementById('dash-add-member-form');
+    const dashAddMemberBtn = document.getElementById('dash-add-member-btn');
+    const dashAddMemberBtnText = document.getElementById('dash-add-member-btn-text');
+    const dashMemberNameInput = document.getElementById('dash-member-name-input');
+    const dashMemberUpiInput = document.getElementById('dash-member-upi-input');
+    const dashMemberAlert = document.getElementById('dash-member-alert');
+
+    function openDashMemberForm() {
+      if (dashAddMemberContainer) {
+        dashAddMemberContainer.classList.remove('hidden');
+        dashAddMemberContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      if (dashMemberNameInput) {
+        dashMemberNameInput.focus();
+      }
+    }
+
+    if (dashOpenAddMemberBtn) {
+      dashOpenAddMemberBtn.addEventListener('click', openDashMemberForm);
+    }
+    if (dashQuickAddMemberPrompt) {
+      dashQuickAddMemberPrompt.addEventListener('click', openDashMemberForm);
+    }
+    if (closeDashMemberBtn && dashAddMemberContainer) {
+      closeDashMemberBtn.addEventListener('click', () => {
+        dashAddMemberContainer.classList.add('hidden');
+      });
+    }
+
+    // Auto-focus if newly created or single member
+    const urlParams = new URLSearchParams(window.location.search);
+    if ((members.length === 1 || urlParams.has('new')) && dashMemberNameInput) {
+      setTimeout(() => {
+        dashMemberNameInput.focus();
+      }, 200);
+    }
+
+    if (dashAddMemberForm && dashAddMemberBtn) {
+      dashAddMemberForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (dashMemberAlert) dashMemberAlert.classList.add('hidden');
+
+        const name = dashMemberNameInput ? dashMemberNameInput.value.trim() : '';
+        const upiId = dashMemberUpiInput ? dashMemberUpiInput.value.trim() : '';
+
+        if (!name) return;
+
+        dashAddMemberBtn.disabled = true;
+        if (dashAddMemberBtnText) dashAddMemberBtnText.textContent = 'Adding…';
+
+        try {
+          const res = await fetch(`/api/trips/${code}/members`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, upiId: upiId || undefined }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || 'Failed to add member');
+          }
+
+          // Successfully added! Smoothly refresh so server-calculated balances and ledger update
+          window.location.href = `/trip/${code}`;
+        } catch (err) {
+          dashAddMemberBtn.disabled = false;
+          if (dashAddMemberBtnText) dashAddMemberBtnText.textContent = 'Add Member';
+          if (dashMemberAlert) {
+            dashMemberAlert.textContent = (err && err.message) ? err.message : 'Error adding member';
+            dashMemberAlert.classList.remove('hidden');
+          }
+        }
+      });
     }
   </script>
 </Layout>

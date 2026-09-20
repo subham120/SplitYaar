@@ -43,13 +43,13 @@ import Layout from '../layouts/Layout.astro';
         <h3 class="text-body-strong text-ink mb-sm font-semibold">Join with Trip Code</h3>
         <form id="join-trip-form" class="space-y-sm">
           <div>
-            <label for="trip-code" class="block text-caption text-ink-muted-80 mb-xxs">8-character Trip Code</label>
+            <label for="trip-code" class="block text-caption text-ink-muted-80 mb-xxs">8-character Trip Code or Link</label>
             <input 
               type="text" 
               id="trip-code" 
               name="code" 
-              placeholder="e.g. A1B2C3D4" 
-              maxlength="8"
+              placeholder="e.g. A1B2C3D4 or paste trip link" 
+              maxlength="120"
               required
               class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[10px] focus:outline-none focus:border-primary"
             />
@@ -58,7 +58,7 @@ import Layout from '../layouts/Layout.astro';
             type="submit" 
             class="w-full bg-primary text-on-primary font-sans text-body py-[10px] rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer"
           >
-            Find Trip
+            Find Trip & Join
           </button>
           <p id="join-error" class="hidden text-caption text-red-600 mt-xs"></p>
         </form>
@@ -173,16 +173,24 @@ import Layout from '../layouts/Layout.astro';
     if (joinForm && tripCodeInput && errorEl) {
       joinForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const code = tripCodeInput.value.trim().toUpperCase();
+        errorEl.classList.add('hidden');
+
+        const raw = tripCodeInput.value.trim();
+        // Extract 8-character code if user pasted a link or full URL
+        const urlMatch = raw.match(/\/trip\/([A-Za-z0-9]{8})/i);
+        let code = urlMatch ? urlMatch[1].toUpperCase() : raw.toUpperCase();
         
+        // Strip non-alphanumeric characters
+        code = code.replace(/[^A-Z0-9]/g, '');
+
         if (code.length !== 8) {
-          errorEl.textContent = 'Please enter a valid 8-character code.';
+          errorEl.textContent = 'Please enter a valid 8-character trip code or paste a trip link.';
           errorEl.classList.remove('hidden');
           return;
         }
 
-        // Navigate directly to the trip dashboard
-        window.location.href = `/trip/${code}`;
+        // Navigate directly to the join page to verify existing user or register new user
+        window.location.href = `/trip/${code}/join`;
       });
     }
   </script>

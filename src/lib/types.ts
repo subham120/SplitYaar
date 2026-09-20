@@ -46,12 +46,22 @@ export interface ExpenseShare {
   sharePaise: number; // Portion of the expense in paise
 }
 
+export interface Settlement {
+  id: string;
+  tripId: string;
+  fromMemberId: string;
+  toMemberId: string;
+  amountPaise: number;
+  date: string; // ISO date (YYYY-MM-DD)
+  createdAt: string; // ISO datetime
+}
+
 // Derived/Calculated structures, not saved directly to database
 export interface MemberBalance {
   memberId: string;
   totalPaidPaise: number;
   totalOwedPaise: number; // Sum of shares
-  netBalancePaise: number; // totalPaidPaise - totalOwedPaise
+  netBalancePaise: number; // totalPaidPaise - totalOwedPaise + settlementsReceived - settlementsPaid
 }
 
 export interface SettlementTransaction {
@@ -59,3 +69,4 @@ export interface SettlementTransaction {
   toMemberId: string;
   amountPaise: number;
 }
+

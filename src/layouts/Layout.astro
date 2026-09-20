@@ -148,6 +148,17 @@ const {
           dropdown.classList.add('hidden');
         });
       }
+
+      // Prevent mouse wheel from accidentally changing number input values across all pages
+      document.addEventListener('wheel', () => {
+        if (
+          document.activeElement &&
+          document.activeElement instanceof HTMLInputElement &&
+          document.activeElement.type === 'number'
+        ) {
+          document.activeElement.blur();
+        }
+      });
     </script>
   </body>
 </html>

@@ -1,11 +1,12 @@
 import { getTripByCode, getTripById } from './store';
-import type { Trip, Member, Expense, ExpenseShare } from './types';
+import type { Trip, Member, Expense, ExpenseShare, Settlement } from './types';
 
 export interface TripData {
   trip: Trip;
   members: Member[];
   expenses: Expense[];
   shares: ExpenseShare[];
+  settlements: Settlement[];
 }
 
 /**

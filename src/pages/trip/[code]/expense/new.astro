@@ -68,6 +68,7 @@ const todayIST = getTodayISTDate();
             required
             step="0.01"
             min="0.01"
+            onwheel="this.blur()"
             class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[11px] focus:outline-none focus:border-primary placeholder:text-zinc-300"
           />
         </div>
@@ -204,6 +205,7 @@ const todayIST = getTodayISTDate();
                     min="0"
                     placeholder="0.00"
                     data-member-id={m.id}
+                    onwheel="this.blur()"
                     class="custom-member-input w-full bg-white text-ink text-right font-sans text-caption border border-hairline rounded-pill pl-md pr-xs py-[6px] focus:outline-none focus:border-primary placeholder:text-zinc-200"
                   />
                 </div>

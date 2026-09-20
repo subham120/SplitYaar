@@ -1,16 +1,20 @@
-import { neon } from '@neondatabase/serverless';
+import { neon, types } from '@neondatabase/serverless';
 import crypto from 'crypto';
-import type { Trip, Member, Expense, ExpenseShare } from './types';
+import type { Trip, Member, Expense, ExpenseShare, Settlement } from './types';
 import { validateCustomSplit } from './split';
 import { computeNetBalances } from './settlement';
+
+// Configure Neon to return PostgreSQL DATE (OID 1082) as raw string ('YYYY-MM-DD')
+// This prevents JavaScript Date timezone shifts (e.g. UTC midnight rollback to previous day in IST)
+types.setTypeParser(types.builtins.DATE, (val: string) => val);
 
 // ---------------------------------------------------------------------------
 // DB client
 // ---------------------------------------------------------------------------
 
 function getDb() {
-  // process.env is required for runtime secrets on Vercel (import.meta.env is build-time only)
-  const url = process.env.DATABASE_URL;
+  // Support both process.env (Vercel runtime) and import.meta.env (Astro local dev)
+  const url = process.env.DATABASE_URL || (typeof import.meta !== 'undefined' && import.meta.env?.DATABASE_URL);
   if (!url) {
     throw new Error(
       'DATABASE_URL environment variable is not set.\n' +
@@ -46,6 +50,20 @@ function rowToMember(row: Record<string, unknown>): Member {
   };
 }
 
+function formatDateValue(val: unknown): string {
+  if (typeof val === 'string') {
+    return val.includes('T') ? val.split('T')[0] : val.slice(0, 10);
+  }
+  if (val instanceof Date) {
+    // Format using local date parts to prevent UTC midnight rollback
+    const year = val.getFullYear();
+    const month = String(val.getMonth() + 1).padStart(2, '0');
+    const day = String(val.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  return String(val);
+}
+
 function rowToExpense(row: Record<string, unknown>): Expense {
   return {
     id: row.id as string,
@@ -55,7 +73,7 @@ function rowToExpense(row: Record<string, unknown>): Expense {
     paidByMemberId: row.paid_by_member_id as string,
     category: row.category as Expense['category'],
     splitType: row.split_type as Expense['splitType'],
-    date: typeof row.date === 'string' ? row.date : (row.date as Date).toISOString().slice(0, 10),
+    date: formatDateValue(row.date),
     createdAt: (row.created_at as Date).toISOString(),
     updatedAt: (row.updated_at as Date).toISOString(),
   };
@@ -67,6 +85,18 @@ function rowToShare(row: Record<string, unknown>): ExpenseShare {
     expenseId: row.expense_id as string,
     memberId: row.member_id as string,
     sharePaise: row.share_paise as number,
+  };
+}
+
+function rowToSettlement(row: Record<string, unknown>): Settlement {
+  return {
+    id: row.id as string,
+    tripId: row.trip_id as string,
+    fromMemberId: row.from_member_id as string,
+    toMemberId: row.to_member_id as string,
+    amountPaise: row.amount_paise as number,
+    date: formatDateValue(row.date),
+    createdAt: (row.created_at as Date).toISOString(),
   };
 }
 
@@ -124,6 +154,7 @@ export async function getTripByCode(code: string): Promise<{
   members: Member[];
   expenses: Expense[];
   shares: ExpenseShare[];
+  settlements: Settlement[];
 } | null> {
   const sql = getDb();
   const normalizedCode = code.trim().toUpperCase();
@@ -140,6 +171,7 @@ export async function getTripById(id: string): Promise<{
   members: Member[];
   expenses: Expense[];
   shares: ExpenseShare[];
+  settlements: Settlement[];
 } | null> {
   const sql = getDb();
 
@@ -158,14 +190,17 @@ async function fetchTripRelations(
   members: Member[];
   expenses: Expense[];
   shares: ExpenseShare[];
+  settlements: Settlement[];
 }> {
-  const [memberRows, expenseRows] = (await Promise.all([
+  const [memberRows, expenseRows, settlementRows] = (await Promise.all([
     sql`SELECT * FROM members WHERE trip_id = ${trip.id} ORDER BY joined_at ASC`,
     sql`SELECT * FROM expenses WHERE trip_id = ${trip.id} ORDER BY date DESC, created_at DESC`,
-  ])) as [Record<string, unknown>[], Record<string, unknown>[]];
+    sql`SELECT * FROM settlements WHERE trip_id = ${trip.id} ORDER BY date DESC, created_at DESC`,
+  ])) as [Record<string, unknown>[], Record<string, unknown>[], Record<string, unknown>[]];
 
   const members = memberRows.map((r) => rowToMember(r));
   const expenses = expenseRows.map((r) => rowToExpense(r));
+  const settlements = settlementRows.map((r) => rowToSettlement(r));
 
   let shares: ExpenseShare[] = [];
   if (expenses.length > 0) {
@@ -176,7 +211,7 @@ async function fetchTripRelations(
     shares = shareRows.map((r) => rowToShare(r));
   }
 
-  return { trip, members, expenses, shares };
+  return { trip, members, expenses, shares, settlements };
 }
 
 export async function addMember(tripId: string, name: string, upiId: string | null = null): Promise<Member> {
@@ -380,4 +415,39 @@ export async function deleteExpense(tripId: string, expenseId: string): Promise<
 
   // CASCADE on expense_shares handles cleanup automatically
   await sql`DELETE FROM expenses WHERE id = ${expenseId} AND trip_id = ${tripId}`;
+}
+
+export async function addSettlement(
+  tripId: string,
+  fromMemberId: string,
+  toMemberId: string,
+  amountPaise: number,
+  date: string
+): Promise<Settlement> {
+  const sql = getDb();
+
+  const tripRows = (await sql`SELECT 1 FROM trips WHERE id = ${tripId}`) as Record<string, unknown>[];
+  if (tripRows.length === 0) throw new Error('Trip not found');
+
+  if (amountPaise <= 0) throw new Error('Settlement amount must be greater than zero');
+
+  const settlementId = crypto.randomUUID();
+  const now = new Date().toISOString();
+
+  await sql`
+    INSERT INTO settlements (id, trip_id, from_member_id, to_member_id, amount_paise, date, created_at)
+    VALUES (${settlementId}, ${tripId}, ${fromMemberId}, ${toMemberId}, ${amountPaise}, ${date}, ${now})
+  `;
+
+  const rows = (await sql`SELECT * FROM settlements WHERE id = ${settlementId}`) as Record<string, unknown>[];
+  return rowToSettlement(rows[0]);
+}
+
+export async function deleteSettlement(tripId: string, settlementId: string): Promise<void> {
+  const sql = getDb();
+
+  const rows = await sql`SELECT 1 FROM settlements WHERE id = ${settlementId} AND trip_id = ${tripId}`;
+  if (rows.length === 0) throw new Error('Settlement not found');
+
+  await sql`DELETE FROM settlements WHERE id = ${settlementId} AND trip_id = ${tripId}`;
 }

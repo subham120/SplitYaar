@@ -155,6 +155,54 @@ const netBalances = computeNetBalances(members, expenses, shares);
     </div>
   </div>
 
+  <!-- Remove Member Confirmation Modal -->
+  <div 
+    id="remove-member-modal" 
+    class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-lg"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="remove-member-title"
+  >
+    <div class="bg-white border border-hairline rounded-lg p-lg max-w-[380px] w-full text-center flex flex-col items-center shadow-2xl relative animate-fadeIn">
+      <!-- Close button inside modal -->
+      <button 
+        id="close-remove-member-modal-btn"
+        aria-label="Close modal"
+        class="absolute right-md top-md w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 text-ink flex items-center justify-center active:scale-90 transition-all select-none cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+
+      <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xl mb-sm font-bold">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" x2="22" y1="8" y2="13"/><line x1="22" x2="17" y1="8" y2="13"/></svg>
+      </div>
+      <h3 id="remove-member-title" class="text-body-strong font-semibold text-ink text-[18px] mb-xxs">
+        Remove Member?
+      </h3>
+      <p id="remove-member-desc" class="text-caption text-ink-muted-48 mb-lg leading-relaxed">
+        Are you sure you want to remove this member from the trip?
+      </p>
+
+      <div class="flex items-center gap-sm w-full">
+        <button
+          id="cancel-remove-member-btn"
+          type="button"
+          class="flex-1 bg-zinc-100 hover:bg-zinc-200 text-ink text-[13px] font-sans font-medium py-[10px] px-md rounded-pill transition-all cursor-pointer select-none"
+        >
+          Cancel
+        </button>
+        <button
+          id="confirm-remove-member-btn"
+          type="button"
+          class="flex-1 bg-red-600 hover:bg-red-700 text-white text-[13px] font-sans font-semibold py-[10px] px-md rounded-pill transition-all cursor-pointer flex items-center justify-center gap-xs shadow-xs select-none"
+        >
+          <span id="confirm-remove-member-btn-text">Remove</span>
+        </button>
+      </div>
+      <p id="remove-member-modal-error" class="hidden text-caption text-red-600 bg-red-50 border border-red-200 rounded-sm p-xs mt-xs w-full text-center"></p>
+    </div>
+  </div>
+
   <script define:vars={{ code }}>
     const currentMemberId = localStorage.getItem(`split_yatra_member_${code}`);
     const alertBox = document.getElementById('members-alert-box');
@@ -274,34 +322,84 @@ const netBalances = computeNetBalances(members, expenses, shares);
           const memberId = row.getAttribute('data-member-id');
           const memberName = row.getAttribute('data-member-name');
 
-          const confirmDel = confirm(`Are you sure you want to remove ${memberName} from this trip?`);
-          if (!confirmDel) return;
+          if (memberId && memberName) {
+            openRemoveMemberModal(memberId, memberName);
+          }
+        }
+      });
+    }
 
-          target.disabled = true;
-          target.textContent = 'Removing…';
+    // In-app Remove Member Modal Logic
+    const removeModal = document.getElementById('remove-member-modal');
+    const closeRemoveModalBtn = document.getElementById('close-remove-member-modal-btn');
+    const cancelRemoveModalBtn = document.getElementById('cancel-remove-member-btn');
+    const confirmRemoveMemberBtn = document.getElementById('confirm-remove-member-btn');
+    const confirmRemoveMemberBtnText = document.getElementById('confirm-remove-member-btn-text');
+    const removeMemberDesc = document.getElementById('remove-member-desc');
+    const removeMemberModalError = document.getElementById('remove-member-modal-error');
 
-          try {
-            const res = await fetch(`/api/trips/${code}/members/${memberId}`, {
-              method: 'DELETE'
-            });
+    let pendingRemoveMemberId = null;
 
-            const result = await res.json();
-            if (!res.ok) {
-              throw new Error(result.error || 'Failed to remove member');
-            }
+    function openRemoveMemberModal(memberId, memberName) {
+      pendingRemoveMemberId = memberId;
+      if (removeMemberDesc) {
+        removeMemberDesc.textContent = `Are you sure you want to remove ${memberName} from this trip?`;
+      }
+      if (removeMemberModalError) removeMemberModalError.classList.add('hidden');
+      if (confirmRemoveMemberBtn) confirmRemoveMemberBtn.disabled = false;
+      if (confirmRemoveMemberBtnText) confirmRemoveMemberBtnText.textContent = 'Remove';
+      if (removeModal) removeModal.classList.remove('hidden');
+    }
 
-            // If deleting oneself, clear local session token and redirect to join
-            if (memberId === currentMemberId) {
-              localStorage.removeItem(`split_yatra_member_${code}`);
-              window.location.replace(`/trip/${code}/join`);
-            } else {
-              window.location.reload();
-            }
+    function closeRemoveMemberModal() {
+      if (removeModal) removeModal.classList.add('hidden');
+      pendingRemoveMemberId = null;
+    }
 
-          } catch (error) {
-            target.disabled = false;
-            target.textContent = 'Remove';
-            showAlert(error.message);
+    if (closeRemoveModalBtn) closeRemoveModalBtn.addEventListener('click', closeRemoveMemberModal);
+    if (cancelRemoveModalBtn) cancelRemoveModalBtn.addEventListener('click', closeRemoveMemberModal);
+    if (removeModal) {
+      removeModal.addEventListener('click', (e) => {
+        if (e.target === removeModal) closeRemoveMemberModal();
+      });
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && removeModal && !removeModal.classList.contains('hidden')) {
+        closeRemoveMemberModal();
+      }
+    });
+
+    if (confirmRemoveMemberBtn) {
+      confirmRemoveMemberBtn.addEventListener('click', async () => {
+        if (!pendingRemoveMemberId) return;
+
+        confirmRemoveMemberBtn.disabled = true;
+        if (confirmRemoveMemberBtnText) confirmRemoveMemberBtnText.textContent = 'Removing…';
+        if (removeMemberModalError) removeMemberModalError.classList.add('hidden');
+
+        try {
+          const res = await fetch(`/api/trips/${code}/members/${pendingRemoveMemberId}`, {
+            method: 'DELETE'
+          });
+
+          const result = await res.json();
+          if (!res.ok) {
+            throw new Error(result.error || 'Failed to remove member');
+          }
+
+          // If deleting oneself, clear local session token and redirect to join
+          if (pendingRemoveMemberId === currentMemberId) {
+            localStorage.removeItem(`split_yatra_member_${code}`);
+            window.location.replace(`/trip/${code}/join`);
+          } else {
+            window.location.reload();
+          }
+        } catch (error) {
+          confirmRemoveMemberBtn.disabled = false;
+          if (confirmRemoveMemberBtnText) confirmRemoveMemberBtnText.textContent = 'Remove';
+          if (removeMemberModalError) {
+            removeMemberModalError.textContent = (error && error.message) ? error.message : 'An error occurred';
+            removeMemberModalError.classList.remove('hidden');
           }
         }
       });

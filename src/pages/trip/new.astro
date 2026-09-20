@@ -120,7 +120,7 @@ import Layout from '../../layouts/Layout.astro';
           }
 
           // 3. Redirect to dashboard
-          window.location.href = `/trip/${trip.code}`;
+          window.location.href = `/trip/${trip.code}?new=1`;
         } catch (error: any) {
           submitBtn.disabled = false;
           submitBtn.textContent = 'Create Trip';
