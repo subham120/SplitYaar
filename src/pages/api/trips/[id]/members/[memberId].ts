@@ -1,44 +1,29 @@
 import type { APIRoute } from 'astro';
-import { removeMember, getTripById, getTripByCode } from '../../../../../lib/store';
+import { removeMember } from '../../../../../lib/store';
+import { resolveTrip, jsonResponse, errorResponse } from '../../../../../lib/api-helpers';
 
 export const DELETE: APIRoute = async ({ params }) => {
   try {
     const { id, memberId } = params;
 
     if (!id || !memberId) {
-      return new Response(
-        JSON.stringify({ error: 'Trip ID and Member ID are required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('Trip ID and Member ID are required', 400);
     }
 
-    // Resolve the true trip ID if code was passed instead of UUID
-    let tripData = await getTripById(id);
+    const tripData = await resolveTrip(id);
     if (!tripData) {
-      tripData = await getTripByCode(id);
+      return errorResponse('Trip not found', 404);
     }
 
-    if (!tripData) {
-      return new Response(
-        JSON.stringify({ error: 'Trip not found' }),
-        { status: 404, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const trueTripId = tripData.trip.id;
-
-    await removeMember(trueTripId, memberId);
-
-    return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    await removeMember(tripData.trip.id, memberId);
+    return jsonResponse({ success: true }, 200);
   } catch (error: any) {
-    // Set status to 400 for balance validation issues, otherwise 500
-    const status = error.message.includes('non-zero balance') ? 400 : 500;
-    return new Response(
-      JSON.stringify({ error: error.message || 'Internal Server Error' }),
-      { status, headers: { 'Content-Type': 'application/json' } }
-    );
+    const isClientError =
+      error.message.includes('non-zero balance') ||
+      error.message.includes('creator') ||
+      error.message.includes('paid for expenses') ||
+      error.message.includes('recorded expenses');
+    const status = isClientError ? 400 : 500;
+    return errorResponse(error.message || 'Internal Server Error', status);
   }
 };

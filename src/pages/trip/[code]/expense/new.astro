@@ -1,6 +1,7 @@
 ---
 import Layout from '../../../../layouts/Layout.astro';
 import { getTripByCode } from '../../../../lib/store';
+import { getTodayISTDate } from '../../../../lib/format';
 
 const { code } = Astro.params;
 
@@ -14,6 +15,7 @@ if (!tripData) {
 }
 
 const { trip, members } = tripData;
+const todayIST = getTodayISTDate();
 ---
 
 <Layout title={`Add Expense — ${trip.name}`} noindex={true}>
@@ -67,6 +69,19 @@ const { trip, members } = tripData;
             step="0.01"
             min="0.01"
             class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[11px] focus:outline-none focus:border-primary placeholder:text-zinc-300"
+          />
+        </div>
+
+        <!-- Date (IST) -->
+        <div>
+          <label for="exp-date" class="block text-caption-strong text-ink font-semibold mb-xxs">Date</label>
+          <input
+            type="date"
+            id="exp-date"
+            name="date"
+            value={todayIST}
+            required
+            class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[11px] focus:outline-none focus:border-primary"
           />
         </div>
 
@@ -349,7 +364,8 @@ const { trip, members } = tripData;
         const paidByMemberId = payerSelect.value;
         const category = hiddenCategory.value;
         const splitType = hiddenSplitType.value;
-        const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD local
+        const dateInput = document.getElementById('exp-date') as HTMLInputElement | null;
+        const date = dateInput && dateInput.value ? dateInput.value : new Date().toISOString().split('T')[0];
 
         let finalShares = [];
 

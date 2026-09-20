@@ -102,20 +102,21 @@ export async function createTrip(name: string, creatorName: string): Promise<Tri
   const code = await generateTripCode();
   const now = new Date().toISOString();
 
-  // Insert trip
-  await sql`
+  // Atomically insert trip and creator member
+  const insertTrip = sql`
     INSERT INTO trips (id, code, name, created_at, created_by_member_id, status)
     VALUES (${tripId}, ${code}, ${name.trim() || 'Untitled Trip'}, ${now}, ${creatorMemberId}, 'active')
   `;
 
-  // Insert creator member
-  await sql`
+  const insertCreator = sql`
     INSERT INTO members (id, trip_id, name, upi_id, joined_at)
     VALUES (${creatorMemberId}, ${tripId}, ${creatorName.trim()}, NULL, ${now})
   `;
 
-  const rows = await sql`SELECT * FROM trips WHERE id = ${tripId}`;
-  return rowToTrip(rows[0] as Record<string, unknown>);
+  await sql.transaction([insertTrip, insertCreator]);
+
+  const rows = (await sql`SELECT * FROM trips WHERE id = ${tripId}`) as Record<string, unknown>[];
+  return rowToTrip(rows[0]);
 }
 
 export async function getTripByCode(code: string): Promise<{
@@ -150,7 +151,7 @@ export async function getTripById(id: string): Promise<{
 }
 
 async function fetchTripRelations(
-  sql: ReturnType<typeof neon>,
+  sql: ReturnType<typeof getDb>,
   trip: Trip
 ): Promise<{
   trip: Trip;
@@ -158,21 +159,21 @@ async function fetchTripRelations(
   expenses: Expense[];
   shares: ExpenseShare[];
 }> {
-  const [memberRows, expenseRows] = await Promise.all([
+  const [memberRows, expenseRows] = (await Promise.all([
     sql`SELECT * FROM members WHERE trip_id = ${trip.id} ORDER BY joined_at ASC`,
     sql`SELECT * FROM expenses WHERE trip_id = ${trip.id} ORDER BY date DESC, created_at DESC`,
-  ]);
+  ])) as [Record<string, unknown>[], Record<string, unknown>[]];
 
-  const members = memberRows.map((r) => rowToMember(r as Record<string, unknown>));
-  const expenses = expenseRows.map((r) => rowToExpense(r as Record<string, unknown>));
+  const members = memberRows.map((r) => rowToMember(r));
+  const expenses = expenseRows.map((r) => rowToExpense(r));
 
   let shares: ExpenseShare[] = [];
   if (expenses.length > 0) {
     const expenseIds = expenses.map((e) => e.id);
-    const shareRows = await sql`
+    const shareRows = (await sql`
       SELECT * FROM expense_shares WHERE expense_id = ANY(${expenseIds})
-    `;
-    shares = shareRows.map((r) => rowToShare(r as Record<string, unknown>));
+    `) as Record<string, unknown>[];
+    shares = shareRows.map((r) => rowToShare(r));
   }
 
   return { trip, members, expenses, shares };
@@ -214,8 +215,31 @@ export async function addMember(tripId: string, name: string, upiId: string | nu
 export async function removeMember(tripId: string, memberId: string): Promise<void> {
   const sql = getDb();
 
-  const tripRows = await sql`SELECT 1 FROM trips WHERE id = ${tripId}`;
+  const tripRows = (await sql`SELECT * FROM trips WHERE id = ${tripId}`) as Record<string, unknown>[];
   if (tripRows.length === 0) throw new Error('Trip not found');
+
+  const trip = tripRows[0];
+  if (trip.created_by_member_id === memberId) {
+    throw new Error('Cannot remove the creator of the trip.');
+  }
+
+  // Check if member paid for any existing expenses (foreign key guard)
+  const paidExpenses = (await sql`
+    SELECT 1 FROM expenses WHERE trip_id = ${tripId} AND paid_by_member_id = ${memberId} LIMIT 1
+  `) as Record<string, unknown>[];
+  if (paidExpenses.length > 0) {
+    throw new Error('Cannot remove member who has paid for expenses. Delete or reassign their expenses first.');
+  }
+
+  // Check if member is part of any existing expense splits
+  const memberShares = (await sql`
+    SELECT 1 FROM expense_shares es
+    JOIN expenses e ON e.id = es.expense_id
+    WHERE e.trip_id = ${tripId} AND es.member_id = ${memberId} LIMIT 1
+  `) as Record<string, unknown>[];
+  if (memberShares.length > 0) {
+    throw new Error('Cannot remove member who is part of recorded expenses. Remove them from those expense splits first.');
+  }
 
   // Balance check
   const tripData = await getTripById(tripId);
@@ -227,9 +251,6 @@ export async function removeMember(tripId: string, memberId: string): Promise<vo
     }
   }
 
-  // Cascade delete removes expense_shares referencing this member automatically
-  // But we also clean up any stray shares that might remain (extra safety)
-  await sql`DELETE FROM expense_shares WHERE member_id = ${memberId}`;
   await sql`DELETE FROM members WHERE id = ${memberId} AND trip_id = ${tripId}`;
 }
 
@@ -248,8 +269,8 @@ export async function updateMemberUpi(tripId: string, memberId: string, upiId: s
     WHERE id = ${memberId} AND trip_id = ${tripId}
   `;
 
-  const rows = await sql`SELECT * FROM members WHERE id = ${memberId}`;
-  return rowToMember(rows[0] as Record<string, unknown>);
+  const rows = (await sql`SELECT * FROM members WHERE id = ${memberId}`) as Record<string, unknown>[];
+  return rowToMember(rows[0]);
 }
 
 export async function addExpense(
@@ -259,7 +280,7 @@ export async function addExpense(
 ): Promise<Expense> {
   const sql = getDb();
 
-  const tripRows = await sql`SELECT 1 FROM trips WHERE id = ${tripId}`;
+  const tripRows = (await sql`SELECT 1 FROM trips WHERE id = ${tripId}`) as Record<string, unknown>[];
   if (tripRows.length === 0) throw new Error('Trip not found');
 
   if (expenseData.amountPaise <= 0) throw new Error('Expense amount must be greater than zero');
@@ -272,7 +293,7 @@ export async function addExpense(
   const expenseId = crypto.randomUUID();
   const now = new Date().toISOString();
 
-  await sql`
+  const insertExpenseQuery = sql`
     INSERT INTO expenses (id, trip_id, description, amount_paise, paid_by_member_id, category, split_type, date, created_at, updated_at)
     VALUES (
       ${expenseId}, ${tripId}, ${expenseData.description}, ${expenseData.amountPaise},
@@ -281,15 +302,20 @@ export async function addExpense(
     )
   `;
 
-  for (const share of sharesData) {
-    await sql`
-      INSERT INTO expense_shares (id, expense_id, member_id, share_paise)
-      VALUES (${crypto.randomUUID()}, ${expenseId}, ${share.memberId}, ${share.sharePaise})
-    `;
-  }
+  const ids = sharesData.map(() => crypto.randomUUID());
+  const expIds = sharesData.map(() => expenseId);
+  const memberIds = sharesData.map((s) => s.memberId);
+  const amounts = sharesData.map((s) => s.sharePaise);
 
-  const rows = await sql`SELECT * FROM expenses WHERE id = ${expenseId}`;
-  return rowToExpense(rows[0] as Record<string, unknown>);
+  const insertSharesQuery = sql`
+    INSERT INTO expense_shares (id, expense_id, member_id, share_paise)
+    SELECT * FROM UNNEST(${ids}::text[], ${expIds}::text[], ${memberIds}::text[], ${amounts}::integer[])
+  `;
+
+  await sql.transaction([insertExpenseQuery, insertSharesQuery]);
+
+  const rows = (await sql`SELECT * FROM expenses WHERE id = ${expenseId}`) as Record<string, unknown>[];
+  return rowToExpense(rows[0]);
 }
 
 export async function updateExpense(
@@ -300,10 +326,10 @@ export async function updateExpense(
 ): Promise<Expense> {
   const sql = getDb();
 
-  const expRows = await sql`SELECT * FROM expenses WHERE id = ${expenseId} AND trip_id = ${tripId}`;
+  const expRows = (await sql`SELECT * FROM expenses WHERE id = ${expenseId} AND trip_id = ${tripId}`) as Record<string, unknown>[];
   if (expRows.length === 0) throw new Error('Expense not found');
 
-  const existing = rowToExpense(expRows[0] as Record<string, unknown>);
+  const existing = rowToExpense(expRows[0]);
   const newAmount = expenseUpdates.amountPaise !== undefined ? expenseUpdates.amountPaise : existing.amountPaise;
 
   if (newAmount <= 0) throw new Error('Expense amount must be greater than zero');
@@ -316,7 +342,7 @@ export async function updateExpense(
   const now = new Date().toISOString();
   const merged = { ...existing, ...expenseUpdates };
 
-  await sql`
+  const updateExpenseQuery = sql`
     UPDATE expenses SET
       description = ${merged.description},
       amount_paise = ${merged.amountPaise},
@@ -328,17 +354,22 @@ export async function updateExpense(
     WHERE id = ${expenseId} AND trip_id = ${tripId}
   `;
 
-  // Replace shares
-  await sql`DELETE FROM expense_shares WHERE expense_id = ${expenseId}`;
-  for (const share of sharesData) {
-    await sql`
-      INSERT INTO expense_shares (id, expense_id, member_id, share_paise)
-      VALUES (${crypto.randomUUID()}, ${expenseId}, ${share.memberId}, ${share.sharePaise})
-    `;
-  }
+  const deleteSharesQuery = sql`DELETE FROM expense_shares WHERE expense_id = ${expenseId}`;
 
-  const rows = await sql`SELECT * FROM expenses WHERE id = ${expenseId}`;
-  return rowToExpense(rows[0] as Record<string, unknown>);
+  const ids = sharesData.map(() => crypto.randomUUID());
+  const expIds = sharesData.map(() => expenseId);
+  const memberIds = sharesData.map((s) => s.memberId);
+  const amounts = sharesData.map((s) => s.sharePaise);
+
+  const insertSharesQuery = sql`
+    INSERT INTO expense_shares (id, expense_id, member_id, share_paise)
+    SELECT * FROM UNNEST(${ids}::text[], ${expIds}::text[], ${memberIds}::text[], ${amounts}::integer[])
+  `;
+
+  await sql.transaction([updateExpenseQuery, deleteSharesQuery, insertSharesQuery]);
+
+  const rows = (await sql`SELECT * FROM expenses WHERE id = ${expenseId}`) as Record<string, unknown>[];
+  return rowToExpense(rows[0]);
 }
 
 export async function deleteExpense(tripId: string, expenseId: string): Promise<void> {

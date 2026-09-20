@@ -104,7 +104,13 @@ import Layout from '../../layouts/Layout.astro';
           localStorage.setItem(`split_yatra_member_${trip.code}`, trip.createdByMemberId);
 
           // 2. Add trip to local trips index for the navbar dropdown list
-          const localTrips = JSON.parse(localStorage.getItem('split_yatra_trips') || '[]');
+          let localTrips: { code: string; name: string }[] = [];
+          try {
+            const parsed = JSON.parse(localStorage.getItem('split_yatra_trips') || '[]');
+            localTrips = Array.isArray(parsed) ? parsed : [];
+          } catch {
+            localTrips = [];
+          }
           
           // Prevent duplicates
           const alreadyExists = localTrips.some((t: { code: string }) => t.code === trip.code);

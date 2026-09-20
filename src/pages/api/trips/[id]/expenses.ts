@@ -1,33 +1,35 @@
 import type { APIRoute } from 'astro';
-import { addExpense, getTripById, getTripByCode } from '../../../../lib/store';
+import { addExpense } from '../../../../lib/store';
+import { resolveTrip, jsonResponse, errorResponse, safeParseJson } from '../../../../lib/api-helpers';
+import type { ExpenseCategory, SplitType, ExpenseShare } from '../../../../lib/types';
 
 export const POST: APIRoute = async ({ request, params }) => {
   try {
     const { id } = params;
 
     if (!id) {
-      return new Response(
-        JSON.stringify({ error: 'Trip ID is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('Trip ID is required', 400);
     }
 
-    // Resolve true trip ID
-    let tripData = await getTripById(id);
+    const tripData = await resolveTrip(id);
     if (!tripData) {
-      tripData = await getTripByCode(id);
+      return errorResponse('Trip not found', 404);
     }
 
-    if (!tripData) {
-      return new Response(
-        JSON.stringify({ error: 'Trip not found' }),
-        { status: 404, headers: { 'Content-Type': 'application/json' } }
-      );
+    const { data, error: parseError } = await safeParseJson<{
+      description?: string;
+      amountPaise?: number;
+      paidByMemberId?: string;
+      category?: ExpenseCategory;
+      splitType?: SplitType;
+      date?: string;
+      shares?: Omit<ExpenseShare, 'id' | 'expenseId'>[];
+    }>(request);
+
+    if (parseError || !data) {
+      return errorResponse(parseError || 'Invalid request body', 400);
     }
 
-    const trueTripId = tripData.trip.id;
-    const body = await request.json();
-    
     const {
       description,
       amountPaise,
@@ -36,67 +38,41 @@ export const POST: APIRoute = async ({ request, params }) => {
       splitType,
       date,
       shares,
-    } = body;
+    } = data;
 
     // Validation
     if (!description || !description.trim()) {
-      return new Response(
-        JSON.stringify({ error: 'Description is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('Description is required', 400);
     }
     if (amountPaise === undefined || amountPaise <= 0) {
-      return new Response(
-        JSON.stringify({ error: 'Expense amount must be greater than zero' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('Expense amount must be greater than zero', 400);
     }
     if (!paidByMemberId) {
-      return new Response(
-        JSON.stringify({ error: 'Payer ID is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('Payer ID is required', 400);
     }
     if (!category) {
-      return new Response(
-        JSON.stringify({ error: 'Category is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('Category is required', 400);
     }
     if (!splitType) {
-      return new Response(
-        JSON.stringify({ error: 'Split type is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('Split type is required', 400);
     }
     if (!date) {
-      return new Response(
-        JSON.stringify({ error: 'Date is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('Date is required', 400);
     }
     if (!shares || !Array.isArray(shares) || shares.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'Split shares are required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('Split shares are required', 400);
     }
 
     const expense = await addExpense(
-      trueTripId,
-      { description, amountPaise, paidByMemberId, category, splitType, date },
+      tripData.trip.id,
+      { description: description.trim(), amountPaise, paidByMemberId, category, splitType, date },
       shares
     );
 
-    return new Response(
-      JSON.stringify({ expense }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({ expense }, 201);
   } catch (error: any) {
-    const status = error.message.includes('Split total does not match') ? 400 : 500;
-    return new Response(
-      JSON.stringify({ error: error.message || 'Internal Server Error' }),
-      { status, headers: { 'Content-Type': 'application/json' } }
-    );
+    const isClientError = error.message.includes('Split total') || error.message.includes('greater than zero');
+    const status = isClientError ? 400 : 500;
+    return errorResponse(error.message || 'Internal Server Error', status);
   }
 };

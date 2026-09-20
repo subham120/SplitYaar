@@ -124,7 +124,13 @@ const members = tripData?.members || [];
       localStorage.setItem(`split_yatra_member_${code}`, memberId);
 
       // 2. Add trip to local dropdown index
-      const localTrips = JSON.parse(localStorage.getItem('split_yatra_trips') || '[]');
+      let localTrips: { code: string; name: string }[] = [];
+      try {
+        const parsed = JSON.parse(localStorage.getItem('split_yatra_trips') || '[]');
+        localTrips = Array.isArray(parsed) ? parsed : [];
+      } catch {
+        localTrips = [];
+      }
       const alreadyExists = localTrips.some((t) => t.code === code);
       if (!alreadyExists) {
         localTrips.push({ code, name: tripName });

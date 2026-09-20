@@ -41,3 +41,16 @@ export function formatISTDate(dateStr: string): string {
     year: 'numeric',
   });
 }
+
+/**
+ * Returns today's calendar date formatted as YYYY-MM-DD in Indian Standard Time (UTC+05:30).
+ * Prevents midnight timezone rollover bugs.
+ */
+export function getTodayISTDate(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}

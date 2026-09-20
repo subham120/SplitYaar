@@ -24,16 +24,20 @@ const rawTransactions = simplifyDebts(netBalances);
 // Enrich transactions with member details, UPI links, and QR codes
 const transactions = await Promise.all(
   rawTransactions.map(async (t) => {
-    const fromMember = members.find((m) => m.id === t.fromMemberId)!;
-    const toMember = members.find((m) => m.id === t.toMemberId)!;
+    const fromMember = members.find((m) => m.id === t.fromMemberId);
+    const toMember = members.find((m) => m.id === t.toMemberId);
+
+    const fromName = fromMember?.name ?? 'Unknown';
+    const toName = toMember?.name ?? 'Unknown';
+    const toUpiId = toMember?.upiId ?? null;
 
     let upiLink = '';
     let qrDataUrl = '';
 
-    if (toMember.upiId) {
+    if (toUpiId) {
       upiLink = buildUpiLink(
-        toMember.upiId,
-        toMember.name,
+        toUpiId,
+        toName,
         t.amountPaise,
         `Settle up: ${trip.name}`
       );
@@ -46,9 +50,9 @@ const transactions = await Promise.all(
 
     return {
       ...t,
-      fromName: fromMember.name,
-      toName: toMember.name,
-      toUpiId: toMember.upiId,
+      fromName,
+      toName,
+      toUpiId,
       upiLink,
       qrDataUrl,
     };

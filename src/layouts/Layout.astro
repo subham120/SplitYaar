@@ -118,13 +118,16 @@ const {
             return;
           }
           
-          listEl.innerHTML = trips.map((trip: { code: string; name: string }) => `
-            <li>
-              <a href="/trip/${trip.code}" class="block px-xs py-[6px] hover:bg-primary hover:text-white rounded-xs transition-colors truncate max-w-full">
-                ${trip.name}
-              </a>
-            </li>
-          `).join('');
+          listEl.innerHTML = '';
+          trips.forEach((trip: { code: string; name: string }) => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = `/trip/${encodeURIComponent(trip.code)}`;
+            a.className = 'block px-xs py-[6px] hover:bg-primary hover:text-white rounded-xs transition-colors truncate max-w-full';
+            a.textContent = trip.name;
+            li.appendChild(a);
+            listEl.appendChild(li);
+          });
         } catch (e) {
           console.error('Failed to parse local trips', e);
         }

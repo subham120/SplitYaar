@@ -1,35 +1,27 @@
 import type { APIRoute } from 'astro';
 import { createTrip } from '../../../lib/store';
+import { jsonResponse, errorResponse, safeParseJson } from '../../../lib/api-helpers';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const body = await request.json();
-    const { name, creatorName } = body;
+    const { data, error: parseError } = await safeParseJson<{ name?: string; creatorName?: string }>(request);
+    if (parseError || !data) {
+      return errorResponse(parseError || 'Invalid request body', 400);
+    }
+
+    const { name, creatorName } = data;
 
     if (!name || !name.trim()) {
-      return new Response(
-        JSON.stringify({ error: 'Trip name is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('Trip name is required', 400);
     }
 
     if (!creatorName || !creatorName.trim()) {
-      return new Response(
-        JSON.stringify({ error: 'Creator name is required' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return errorResponse('Creator name is required', 400);
     }
 
     const trip = await createTrip(name, creatorName);
-
-    return new Response(
-      JSON.stringify({ trip }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({ trip }, 201);
   } catch (error: any) {
-    return new Response(
-      JSON.stringify({ error: error.message || 'Internal Server Error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return errorResponse(error.message || 'Internal Server Error', 500);
   }
 };

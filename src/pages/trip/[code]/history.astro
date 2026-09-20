@@ -88,32 +88,31 @@ const sortedExpenses = [...expenses].sort(
 
       <!-- Expense History Log List -->
       <div class="space-y-sm" id="expense-log-list">
-        {sortedExpenses.length === 0 ? (
-          <div class="bg-white border border-hairline rounded-lg p-xxl text-center text-ink-muted-48">
-            <span class="text-[56px] block mb-sm">📭</span>
-            <h3 class="text-body-strong font-semibold text-ink mb-xxs">No Expenses Found</h3>
-            <p class="text-caption mb-md">This trip doesn't have any logged entries matching current filters.</p>
-            <a
-              href={`/trip/${code}/expense/new`}
-              class="bg-primary text-on-primary font-sans font-medium text-body px-xl py-xs rounded-pill hover:bg-primary-focus active:scale-95 transition-all inline-block select-none cursor-pointer"
+        <div id="empty-filter-state" class={`${sortedExpenses.length === 0 ? '' : 'hidden'} bg-white border border-hairline rounded-lg p-xxl text-center text-ink-muted-48`}>
+          <span class="text-[56px] block mb-sm">📭</span>
+          <h3 class="text-body-strong font-semibold text-ink mb-xxs">No Expenses Found</h3>
+          <p class="text-caption mb-md">This trip doesn't have any logged entries matching current filters.</p>
+          <a
+            href={`/trip/${code}/expense/new`}
+            class="bg-primary text-on-primary font-sans font-medium text-body px-xl py-xs rounded-pill hover:bg-primary-focus active:scale-95 transition-all inline-block select-none cursor-pointer"
+          >
+            Add Expense
+          </a>
+        </div>
+
+        {sortedExpenses.map((exp) => {
+          const payer = members.find((m) => m.id === exp.paidByMemberId);
+          const payerName = payer ? payer.name : 'Unknown';
+
+          // Find shares associated with this expense
+          const expShares = shares.filter((s) => s.expenseId === exp.id);
+
+          return (
+            <div
+              class="expense-item-row bg-white border border-hairline hover:border-zinc-300 rounded-lg p-lg cursor-pointer transition-all select-none flex flex-col gap-md"
+              data-category={exp.category}
+              data-payer-id={exp.paidByMemberId}
             >
-              Add Expense
-            </a>
-          </div>
-        ) : (
-          sortedExpenses.map((exp) => {
-            const payer = members.find((m) => m.id === exp.paidByMemberId);
-            const payerName = payer ? payer.name : 'Unknown';
-
-            // Find shares associated with this expense
-            const expShares = shares.filter((s) => s.expenseId === exp.id);
-
-            return (
-              <div
-                class="expense-item-row bg-white border border-hairline hover:border-zinc-300 rounded-lg p-lg cursor-pointer transition-all select-none flex flex-col gap-md"
-                data-category={exp.category}
-                data-payer-id={exp.paidByMemberId}
-              >
                 <!-- Row Header Summary -->
                 <div class="flex items-center justify-between gap-md">
                   <div class="truncate">
@@ -172,8 +171,7 @@ const sortedExpenses = [...expenses].sort(
                 </div>
               </div>
             );
-          })
-        )}
+          })}
       </div>
 
     </div>
@@ -239,12 +237,12 @@ const sortedExpenses = [...expenses].sort(
       });
 
       // Show empty state if everything is filtered out
-      const emptyState = document.querySelector('.bg-white.text-center');
+      const emptyState = document.getElementById('empty-filter-state');
       if (emptyState) {
         if (visibleCount === 0) {
-          (emptyState as HTMLElement).style.display = 'block';
+          emptyState.classList.remove('hidden');
         } else {
-          (emptyState as HTMLElement).style.display = 'none';
+          emptyState.classList.add('hidden');
         }
       }
     }

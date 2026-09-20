@@ -77,6 +77,19 @@ const expenseShares = allShares.filter((s) => s.expenseId === expenseId);
           />
         </div>
 
+        <!-- Date (IST) -->
+        <div>
+          <label for="exp-date" class="block text-caption-strong text-ink font-semibold mb-xxs">Date</label>
+          <input
+            type="date"
+            id="exp-date"
+            name="date"
+            value={expense.date}
+            required
+            class="w-full bg-canvas text-ink font-sans text-body border border-hairline rounded-pill px-lg py-[11px] focus:outline-none focus:border-primary"
+          />
+        </div>
+
         <!-- Paid By Payer Dropdown -->
         <div>
           <label for="exp-payer" class="block text-caption-strong text-ink font-semibold mb-xxs">Paid By</label>
@@ -393,7 +406,8 @@ const expenseShares = allShares.filter((s) => s.expenseId === expenseId);
         const paidByMemberId = payerSelect.value;
         const category = hiddenCategory.value;
         const splitType = hiddenSplitType.value;
-        const date = new Date().toISOString().split('T')[0]; // local ISO date
+        const dateInput = document.getElementById('exp-date') as HTMLInputElement | null;
+        const date = dateInput && dateInput.value ? dateInput.value : expense.date;
 
         let finalShares = [];
 
