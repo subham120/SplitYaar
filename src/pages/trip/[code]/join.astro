@@ -120,21 +120,25 @@ const members = tripData?.members || [];
 
     // Helper: Set identity and redirect
     function selectMember(memberId) {
-      // 1. Save member ID
-      localStorage.setItem(`split_yatra_member_${code}`, memberId);
-
-      // 2. Add trip to local dropdown index
-      let localTrips = [];
       try {
-        const parsed = JSON.parse(localStorage.getItem('split_yatra_trips') || '[]');
-        localTrips = Array.isArray(parsed) ? parsed : [];
-      } catch {
-        localTrips = [];
-      }
-      const alreadyExists = localTrips.some((t) => t.code === code);
-      if (!alreadyExists) {
-        localTrips.push({ code, name: tripName });
-        localStorage.setItem('split_yatra_trips', JSON.stringify(localTrips));
+        // 1. Save member ID
+        localStorage.setItem(`split_yatra_member_${code}`, memberId);
+
+        // 2. Add trip to local dropdown index
+        let localTrips = [];
+        try {
+          const parsed = JSON.parse(localStorage.getItem('split_yatra_trips') || '[]');
+          localTrips = Array.isArray(parsed) ? parsed : [];
+        } catch {
+          localTrips = [];
+        }
+        const alreadyExists = localTrips.some((t) => t.code === code);
+        if (!alreadyExists) {
+          localTrips.push({ code, name: tripName });
+          localStorage.setItem('split_yatra_trips', JSON.stringify(localTrips));
+        }
+      } catch (storageErr) {
+        console.warn('Storage unavailable or quota exceeded:', storageErr);
       }
 
       // 3. Redirect to dashboard
