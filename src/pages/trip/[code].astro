@@ -56,19 +56,36 @@ const recentExpenses = [...expenses]
               Split among {members.length} member{members.length === 1 ? '' : 's'}.
             </p>
           </div>
-          <div class="w-full md:w-auto bg-surface-pearl border border-hairline rounded-md p-sm flex items-center justify-between gap-md max-w-sm">
-            <div class="truncate">
-              <span class="text-[11px] uppercase text-ink-muted-48 block font-semibold">Share Trip Link</span>
+          <div class="w-full md:w-auto bg-surface-pearl border border-hairline rounded-md p-sm flex items-center justify-between gap-md max-w-md">
+            <div class="truncate cursor-pointer group" id="share-link-box" title="Click to copy link">
+              <span class="text-[11px] uppercase text-ink-muted-48 block font-semibold flex items-center gap-xs">
+                <span>Share Trip Link</span>
+                <span id="copy-hint" class="text-[10px] text-primary font-normal lowercase opacity-0 group-hover:opacity-100 transition-opacity">click to copy</span>
+              </span>
               <span class="font-mono text-caption text-ink font-semibold truncate block select-all" id="share-link-text">
                 Loading…
               </span>
             </div>
-            <button 
-              id="share-invite-btn"
-              class="bg-primary text-on-primary text-[12px] font-sans font-medium px-md py-xs rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer shrink-0"
-            >
-              Share
-            </button>
+            <div class="flex items-center gap-xs shrink-0">
+              <button 
+                id="share-invite-btn"
+                class="bg-primary text-on-primary text-[12px] font-sans font-medium px-md py-xs rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer shrink-0 flex items-center gap-[4px]"
+                title="Copy trip invite link"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                <span id="share-btn-text">Share</span>
+              </button>
+              <a
+                id="whatsapp-share-btn"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="bg-emerald-600 text-white text-[12px] font-sans font-medium px-md py-xs rounded-pill hover:bg-emerald-700 active:scale-95 transition-all select-none cursor-pointer shrink-0 flex items-center gap-[4px]"
+                title="Share on WhatsApp"
+              >
+                <span>WhatsApp</span>
+              </a>
+            </div>
           </div>
         </div>
 
@@ -206,25 +223,87 @@ const recentExpenses = [...expenses]
   </div>
 
   <!-- Client-side Hydration Script -->
-  <script define:vars={{ code, netBalances, members }}>
+  <script define:vars={{ code, netBalances, members, tripName: trip.name }}>
     // Resolve identity
     const currentMemberId = localStorage.getItem(`split_yatra_member_${code}`);
     
-    // Set share link text
+    // Set share link text and WhatsApp link
+    const fullUrl = `${window.location.origin}/trip/${code}`;
     const linkEl = document.getElementById('share-link-text');
     if (linkEl) {
-      linkEl.textContent = `${window.location.origin}/trip/${code}`;
+      linkEl.textContent = fullUrl;
     }
 
-    // WhatsApp invite share integration
+    const waBtn = document.getElementById('whatsapp-share-btn');
+    if (waBtn) {
+      const waText = encodeURIComponent(
+        `Hey! Join our "${tripName}" ledger on SplitYatra to split our bills: ${fullUrl} (Code: ${code})`
+      );
+      waBtn.href = `https://api.whatsapp.com/send?text=${waText}`;
+    }
+
+    // Share & Copy Handler
+    async function handleShareOrCopy() {
+      const shareBtn = document.getElementById('share-invite-btn');
+      const shareBtnText = document.getElementById('share-btn-text');
+
+      // 1. Try Native Web Share API first if supported
+      const shareData = {
+        title: `${tripName} — SplitYatra`,
+        text: `Hey! Join our "${tripName}" ledger on SplitYatra to split our bills:`,
+        url: fullUrl,
+      };
+
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        try {
+          await navigator.share(shareData);
+          return;
+        } catch (err) {
+          if (err && err.name === 'AbortError') return;
+        }
+      }
+
+      // 2. Clipboard copy fallback
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(fullUrl);
+        } else {
+          const textArea = document.createElement('textarea');
+          textArea.value = fullUrl;
+          textArea.style.position = 'fixed';
+          textArea.style.opacity = '0';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+        }
+
+        // Show instant visual confirmation
+        if (shareBtnText && shareBtn) {
+          shareBtnText.textContent = 'Copied! ✓';
+          shareBtn.classList.remove('bg-primary', 'hover:bg-primary-focus');
+          shareBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+
+          setTimeout(() => {
+            shareBtnText.textContent = 'Share';
+            shareBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+            shareBtn.classList.add('bg-primary', 'hover:bg-primary-focus');
+          }, 2000);
+        }
+      } catch (err) {
+        console.error('Failed to copy link:', err);
+      }
+    }
+
     const shareBtn = document.getElementById('share-invite-btn');
     if (shareBtn) {
-      shareBtn.addEventListener('click', () => {
-        const text = encodeURIComponent(
-          `Hey! Join our expense ledger on SplitYatra to split our bills: ${window.location.origin}/trip/${code} (Code: ${code})`
-        );
-        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
-      });
+      shareBtn.addEventListener('click', handleShareOrCopy);
+    }
+
+    const shareBox = document.getElementById('share-link-box');
+    if (shareBox) {
+      shareBox.addEventListener('click', handleShareOrCopy);
     }
 
     // Hydrate 'You' badges in Ledger list
