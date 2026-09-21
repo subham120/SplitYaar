@@ -15,29 +15,38 @@ const links = [
 ];
 ---
 
-<div class="sticky top-[44px] bg-canvas-parchment/80 backdrop-blur-md border-b border-hairline h-[52px] flex items-center z-40 select-none">
-  <div class="max-w-[1440px] w-full mx-auto px-lg flex items-center justify-between gap-xs sm:gap-md">
-    <!-- Left: Trip Title & Short Code -->
-    <div class="flex items-center gap-xs truncate min-w-0">
-      <span class="font-display text-[15px] sm:text-tagline font-semibold text-ink truncate max-w-[100px] xs:max-w-[160px] sm:max-w-[300px]">
-        {tripName}
-      </span>
-      <span class="font-mono bg-zinc-200 text-ink px-sm py-[2px] rounded-xs text-[11px] sm:text-[12px] font-bold tracking-wider shrink-0" title={`Trip Code: ${code}`}>
-        {code}
-      </span>
+<div class="sticky top-[44px] bg-white/95 backdrop-blur-md border-b border-hairline z-40 select-none shadow-xs">
+  <div class="max-w-[1440px] w-full mx-auto px-3.5 sm:px-lg py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-md">
+    <!-- Top Row on Mobile / Left on Desktop: Trip Title & Short Code -->
+    <div class="flex items-center justify-between sm:justify-start gap-2 min-w-0">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="font-display text-[15px] sm:text-tagline font-bold text-ink truncate max-w-[200px] xs:max-w-[280px] sm:max-w-[340px]" title={tripName}>
+          {tripName}
+        </span>
+        <button
+          id="subnav-copy-code-btn"
+          type="button"
+          class="font-mono bg-zinc-100 hover:bg-zinc-200 active:scale-95 text-ink-muted-80 border border-zinc-300/70 px-2 py-[2px] rounded-xs text-[11px] font-bold tracking-wider shrink-0 flex items-center gap-1 transition-all cursor-pointer"
+          title="Click to copy trip code"
+          aria-label="Copy trip code"
+        >
+          <span>{code}</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+        </button>
+      </div>
     </div>
     
-    <!-- Right: Nav links -->
-    <nav class="flex items-center gap-xs sm:gap-lg overflow-x-auto no-scrollbar scroll-smooth">
+    <!-- Tab Navigation: Smooth horizontal scrolling on mobile with clear active pill styling -->
+    <nav class="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar py-0.5 -mx-1 px-1">
       {links.map((link) => {
         const isActive = link.id === activeTab;
         return (
           <a
             href={link.href}
-            class={`text-[12px] sm:text-button-utility transition-colors font-medium whitespace-nowrap py-[4px] px-[6px] border-b-2 ${
+            class={`text-[12.5px] sm:text-[13px] transition-all font-medium whitespace-nowrap py-1 px-2.5 sm:px-3 rounded-pill text-center ${
               isActive 
-                ? 'text-primary border-primary font-semibold' 
-                : 'text-ink-muted-48 border-transparent hover:text-ink'
+                ? 'bg-primary text-white font-semibold shadow-xs' 
+                : 'text-ink-muted-48 hover:text-ink hover:bg-zinc-100'
             }`}
           >
             {link.label}
@@ -47,3 +56,38 @@ const links = [
     </nav>
   </div>
 </div>
+
+<script define:vars={{ code }}>
+  const subnavCopyBtn = document.getElementById('subnav-copy-code-btn');
+  if (subnavCopyBtn) {
+    subnavCopyBtn.addEventListener('click', async () => {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(code);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = code;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        }
+        const span = subnavCopyBtn.querySelector('span');
+        if (span) {
+          const orig = span.textContent;
+          span.textContent = 'Copied!';
+          subnavCopyBtn.classList.add('text-green-600', 'border-green-300');
+          setTimeout(() => {
+            span.textContent = orig;
+            subnavCopyBtn.classList.remove('text-green-600', 'border-green-300');
+          }, 1500);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    });
+  }
+</script>
+

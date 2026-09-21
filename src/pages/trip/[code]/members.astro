@@ -31,19 +31,19 @@ const netBalances = computeNetBalances(members, expenses, shares);
   <!-- Frosted SubNav -->
   <SubNav code={code} activeTab="members" tripName={trip.name} />
 
-  <div class="bg-canvas-parchment min-h-[90vh] pb-[60px] pt-lg px-lg">
-    <div class="max-w-[1440px] w-full mx-auto grid grid-cols-1 lg:grid-cols-3 gap-lg">
+  <div class="bg-canvas-parchment min-h-[90vh] pb-20 pt-3 sm:pt-lg px-3.5 sm:px-lg">
+    <div class="max-w-[1440px] w-full mx-auto grid grid-cols-1 lg:grid-cols-3 gap-3.5 sm:gap-lg">
       
       <!-- Left 2 Columns: Members List & UPI configuration -->
-      <div class="lg:col-span-2 space-y-md">
+      <div class="lg:col-span-2 space-y-3 sm:space-y-md">
         <!-- Error Alert box -->
         <div id="members-alert-box" class="hidden bg-red-50 border border-red-200 rounded-md p-md text-caption text-red-600 animate-fadeIn">
         </div>
 
-        <div class="bg-white border border-hairline rounded-lg p-lg shadow-sm">
-          <h2 class="text-body-strong font-semibold text-ink mb-lg">Group Members</h2>
+        <div class="bg-white border border-hairline rounded-lg p-4 sm:p-lg shadow-sm">
+          <h2 class="text-body-strong font-semibold text-ink mb-4 sm:mb-lg">Group Members</h2>
           
-          <div class="space-y-lg" id="members-list-container">
+          <div class="space-y-4 sm:space-y-lg" id="members-list-container">
             {members.map((m) => {
               const mBal = netBalances.find((b) => b.memberId === m.id);
               const balancePaise = mBal ? mBal.netBalancePaise : 0;
@@ -60,38 +60,43 @@ const netBalances = computeNetBalances(members, expenses, shares);
 
               return (
                 <div 
-                  class="member-management-row flex flex-col md:flex-row md:items-center justify-between gap-md border-b border-divider-soft pb-lg last:border-0 last:pb-0"
+                  class="member-management-row flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-divider-soft pb-4 sm:pb-lg last:border-0 last:pb-0"
                   data-member-id={m.id}
                   data-member-name={m.name}
                 >
                   <!-- Member Name & Net Balance Status -->
-                  <div class="truncate">
-                    <span class="text-body-strong text-ink font-semibold flex items-center gap-xs">
-                      <span class="truncate">{m.name}</span>
-                      <span class="member-you-badge hidden text-fine-print bg-primary text-white px-xs py-[2px] rounded-xs text-[10px]">You</span>
-                    </span>
-                    <span class={`text-caption block mt-[2px] ${balClass}`}>
-                      {balText}
-                    </span>
+                  <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-8 h-8 rounded-full bg-zinc-200/80 text-ink font-bold text-[13px] flex items-center justify-center shrink-0">
+                      {m.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <span class="text-[15px] sm:text-body-strong text-ink font-semibold flex items-center gap-1.5 flex-wrap">
+                        <span class="truncate max-w-[160px] xs:max-w-[220px] sm:max-w-none">{m.name}</span>
+                        <span class="member-you-badge hidden text-fine-print bg-primary text-white px-1.5 py-[1px] rounded-xs text-[10px] font-semibold shrink-0">You</span>
+                      </span>
+                      <span class={`text-[12px] block mt-0.5 ${balClass}`}>
+                        {balText}
+                      </span>
+                    </div>
                   </div>
 
                   <!-- UPI Input and Action Options -->
-                  <div class="flex items-center gap-md w-full md:w-auto">
+                  <div class="flex items-center gap-2 w-full sm:w-auto">
                     <!-- UPI Form -->
-                    <div class="flex items-center gap-xs flex-grow md:flex-grow-0">
+                    <div class="flex items-center gap-1.5 flex-grow sm:flex-grow-0">
                       <div class="relative flex-grow max-w-xs">
-                        <span class="absolute left-md top-1/2 -translate-y-1/2 text-fine-print text-ink-muted-48">upi:</span>
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-ink-muted-48 font-medium">upi:</span>
                         <input
                           type="text"
                           value={m.upiId || ''}
                           placeholder="username@bank"
                           autocomplete="off"
-                          class="upi-input-field w-full bg-surface-pearl text-ink font-sans text-caption border border-hairline rounded-pill pl-[34px] pr-xs py-[6px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-zinc-300 transition-all"
+                          class="upi-input-field w-full bg-surface-pearl text-ink font-sans text-[12.5px] border border-hairline rounded-pill pl-9 pr-2 py-1.5 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-zinc-300 transition-all"
                         />
                       </div>
                       <button
                         type="button"
-                        class="save-upi-btn bg-primary text-on-primary text-[12px] font-sans font-medium px-md py-[6px] rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer shrink-0"
+                        class="save-upi-btn bg-primary text-on-primary text-[12px] font-sans font-medium px-3 py-1.5 rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer shrink-0"
                       >
                         Save
                       </button>
@@ -100,7 +105,7 @@ const netBalances = computeNetBalances(members, expenses, shares);
                     <!-- Delete button -->
                     <button
                       type="button"
-                      class="remove-member-btn text-caption text-red-500 hover:text-red-700 font-medium select-none cursor-pointer transition-colors active:scale-95 shrink-0"
+                      class="remove-member-btn text-[12px] text-red-500 hover:text-red-700 font-medium select-none cursor-pointer transition-colors active:scale-95 shrink-0 px-2 py-1"
                     >
                       Remove
                     </button>

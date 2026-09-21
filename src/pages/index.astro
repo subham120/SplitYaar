@@ -4,7 +4,7 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout>
   <!-- Section 1: Hero (Light / Canvas BG) -->
-  <section class="bg-canvas py-section px-lg flex flex-col items-center text-center justify-center min-h-[75vh]">
+  <section class="bg-canvas py-12 sm:py-section px-3.5 sm:px-lg flex flex-col items-center text-center justify-center min-h-[75vh]">
     <div class="max-w-[800px] w-full flex flex-col items-center">
       <!-- Tagline -->
       <span class="text-primary font-semibold tracking-wide uppercase text-caption-strong mb-xs">
@@ -12,34 +12,34 @@ import Layout from '../layouts/Layout.astro';
       </span>
       
       <!-- Headline -->
-      <h1 class="text-hero-display font-display text-ink font-semibold tracking-tight leading-none mb-md select-none">
+      <h1 class="text-[36px] sm:text-hero-display font-display text-ink font-semibold tracking-tight leading-none mb-md select-none">
         Split trip expenses.<br/>
         Zero friction.
       </h1>
       
       <!-- Sub-headline -->
-      <p class="text-lead text-ink-muted-80 font-normal leading-relaxed max-w-[600px] mb-xl">
+      <p class="text-[16px] sm:text-lead text-ink-muted-80 font-normal leading-relaxed max-w-[600px] mb-xl">
         A mobile-first expense splitter built for Indian friend groups. Settle roommate rent or travel expenses instantly via UPI. No email, no password, no signup.
       </p>
       
       <!-- CTAs -->
-      <div class="flex flex-col sm:flex-row gap-md w-full sm:w-auto">
+      <div class="flex flex-col sm:flex-row gap-3 sm:gap-md w-full sm:w-auto">
         <a 
           href="/trip/new" 
-          class="bg-primary text-on-primary font-sans font-normal text-body px-xl py-md rounded-pill hover:bg-primary-focus active:scale-95 transition-all text-center select-none cursor-pointer inline-block"
+          class="bg-primary text-on-primary font-sans font-medium text-body px-xl py-3 sm:py-md rounded-pill hover:bg-primary-focus active:scale-95 transition-all text-center select-none cursor-pointer inline-block shadow-xs"
         >
           Start a New Trip
         </a>
         <button 
           id="join-trip-btn"
-          class="border border-primary text-primary bg-transparent font-sans font-normal text-body px-xl py-md rounded-pill active:scale-95 transition-all text-center select-none cursor-pointer inline-block"
+          class="border border-primary text-primary bg-transparent font-sans font-medium text-body px-xl py-3 sm:py-md rounded-pill active:scale-95 transition-all text-center select-none cursor-pointer inline-block"
         >
           Join Existing Trip
         </button>
       </div>
 
       <!-- Quick join form (hidden by default, toggled by JS) -->
-      <div id="join-form-container" class="hidden mt-xl w-full max-w-sm p-lg bg-canvas-parchment border border-hairline rounded-lg text-left animate-fadeIn">
+      <div id="join-form-container" class="hidden mt-xl w-full max-w-sm p-4 sm:p-lg bg-canvas-parchment border border-hairline rounded-lg text-left animate-fadeIn shadow-sm">
         <h3 class="text-body-strong text-ink mb-sm font-semibold">Join with Trip Code</h3>
         <form id="join-trip-form" class="space-y-sm">
           <div>
@@ -67,19 +67,19 @@ import Layout from '../layouts/Layout.astro';
   </section>
 
   <!-- Section 2: Features (Parchment BG for rhythm change) -->
-  <section class="bg-canvas-parchment py-section px-lg border-t border-hairline">
+  <section class="bg-canvas-parchment py-12 sm:py-section px-3.5 sm:px-lg border-t border-hairline">
     <div class="max-w-[1440px] w-full mx-auto">
-      <div class="text-center max-w-[800px] mx-auto mb-xxl">
-        <h2 class="text-display-lg text-ink font-display font-semibold mb-sm">Built for how Indian groups spend.</h2>
-        <p class="text-lead text-ink-muted-48 leading-relaxed">
+      <div class="text-center max-w-[800px] mx-auto mb-10 sm:mb-xxl">
+        <h2 class="text-[26px] sm:text-display-lg text-ink font-display font-semibold mb-sm">Built for how Indian groups spend.</h2>
+        <p class="text-caption sm:text-lead text-ink-muted-48 leading-relaxed">
           Forget spreadsheets and typing manually on WhatsApp. SplitYatra settles debts with the absolute minimum number of payments.
         </p>
       </div>
       
       <!-- Utility Cards Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-lg">
         <!-- Card 1 -->
-        <div class="bg-canvas border border-hairline rounded-lg p-lg flex flex-col justify-between min-h-[220px]">
+        <div class="bg-canvas border border-hairline rounded-lg p-5 sm:p-lg flex flex-col justify-between min-h-[200px] sm:min-h-[220px] shadow-xs">
           <div>
             <div class="text-[32px] mb-sm">⚡</div>
             <h3 class="text-body-strong text-ink font-semibold mb-xs">Log in 15 seconds</h3>
@@ -90,7 +90,7 @@ import Layout from '../layouts/Layout.astro';
         </div>
 
         <!-- Card 2 -->
-        <div class="bg-canvas border border-hairline rounded-lg p-lg flex flex-col justify-between min-h-[220px]">
+        <div class="bg-canvas border border-hairline rounded-lg p-5 sm:p-lg flex flex-col justify-between min-h-[200px] sm:min-h-[220px] shadow-xs">
           <div>
             <div class="text-[32px] mb-sm">📉</div>
             <h3 class="text-body-strong text-ink font-semibold mb-xs">Greedy Debt Settlement</h3>
@@ -101,7 +101,7 @@ import Layout from '../layouts/Layout.astro';
         </div>
 
         <!-- Card 3 -->
-        <div class="bg-canvas border border-hairline rounded-lg p-lg flex flex-col justify-between min-h-[220px]">
+        <div class="bg-canvas border border-hairline rounded-lg p-5 sm:p-lg flex flex-col justify-between min-h-[200px] sm:min-h-[220px] shadow-xs">
           <div>
             <div class="text-[32px] mb-sm">💸</div>
             <h3 class="text-body-strong text-ink font-semibold mb-xs">UPI Integrated</h3>
@@ -115,21 +115,21 @@ import Layout from '../layouts/Layout.astro';
   </section>
 
   <!-- Section 3: Dark Tile Accent Section (Tile BG for contrast) -->
-  <section class="bg-surface-tile-1 text-on-dark py-section px-lg border-t border-zinc-800">
-    <div class="max-w-[1440px] w-full mx-auto flex flex-col md:flex-row items-center justify-between gap-xl">
+  <section class="bg-surface-tile-1 text-on-dark py-12 sm:py-section px-3.5 sm:px-lg border-t border-zinc-800">
+    <div class="max-w-[1440px] w-full mx-auto flex flex-col md:flex-row items-center justify-between gap-8 sm:gap-xl">
       <div class="max-w-[600px]">
         <span class="text-primary-on-dark font-semibold tracking-wide uppercase text-caption-strong mb-xs block">
           Designed with Privacy
         </span>
-        <h2 class="text-display-lg text-body-on-dark font-display font-semibold mb-md">
+        <h2 class="text-[26px] sm:text-display-lg text-body-on-dark font-display font-semibold mb-md">
           Your expense history is yours.
         </h2>
-        <p class="text-lead text-body-muted leading-relaxed mb-lg">
+        <p class="text-caption sm:text-lead text-body-muted leading-relaxed mb-lg">
           SplitYatra does not save cookie profiles, track browser behavior, or ask for email contacts. All transaction logs are kept private to your trip's shared invite code.
         </p>
         <a 
           href="/trip/new" 
-          class="bg-primary text-on-primary font-sans font-normal text-body px-xl py-md rounded-pill hover:bg-primary-focus active:scale-95 transition-all inline-block"
+          class="bg-primary text-on-primary font-sans font-medium text-body px-xl py-3 sm:py-md rounded-pill hover:bg-primary-focus active:scale-95 transition-all inline-block shadow-xs"
         >
           Create Free Trip
         </a>

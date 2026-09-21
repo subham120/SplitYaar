@@ -71,22 +71,22 @@ const transactions = await Promise.all(
   <!-- Frosted SubNav -->
   <SubNav code={code} activeTab="settlement" tripName={trip.name} />
 
-  <div class="bg-canvas-parchment min-h-[90vh] pb-[60px] pt-lg px-lg">
-    <div class="max-w-[640px] w-full mx-auto space-y-lg">
+  <div class="bg-canvas-parchment min-h-[90vh] pb-20 pt-3 sm:pt-lg px-3.5 sm:px-lg">
+    <div class="max-w-[640px] w-full mx-auto space-y-3.5 sm:space-y-lg">
       
       {transactions.length === 0 ? (
         <!-- Happy settled state -->
-        <div class="bg-white border border-hairline rounded-lg p-xxl text-center flex flex-col items-center justify-center min-h-[360px] shadow-sm select-none">
-          <span class="text-[64px] block mb-sm">🎉</span>
-          <h2 class="text-display-md font-display font-semibold text-ink tracking-tight mb-xs">
+        <div class="bg-white border border-hairline rounded-lg p-6 sm:p-xxl text-center flex flex-col items-center justify-center min-h-[320px] shadow-sm select-none">
+          <span class="text-[52px] sm:text-[64px] block mb-sm">🎉</span>
+          <h2 class="text-[24px] sm:text-display-md font-display font-semibold text-ink tracking-tight mb-xs">
             Everyone is Settled!
           </h2>
-          <p class="text-lead text-ink-muted-48 leading-relaxed max-w-[400px]">
+          <p class="text-caption sm:text-lead text-ink-muted-48 leading-relaxed max-w-[400px]">
             No outstanding balances remain. All debts have been squared away.
           </p>
           <a
             href={`/trip/${code}`}
-            class="mt-lg bg-primary text-on-primary font-sans font-medium text-body px-xl py-md rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer"
+            class="mt-lg bg-primary text-on-primary font-sans font-semibold text-body px-xl py-2.5 rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer shadow-xs"
           >
             Go to Dashboard
           </a>
@@ -94,38 +94,38 @@ const transactions = await Promise.all(
       ) : (
         <!-- Debts List -->
         <div class="space-y-sm">
-          <div class="bg-white border border-hairline rounded-lg p-lg shadow-sm">
-            <h2 class="text-body-strong font-semibold text-ink mb-xxs">Settlement Plan</h2>
-            <p class="text-caption text-ink-muted-48 leading-relaxed mb-lg">
+          <div class="bg-white border border-hairline rounded-lg p-4 sm:p-lg shadow-sm">
+            <h2 class="text-body-strong font-semibold text-ink mb-1">Settlement Plan</h2>
+            <p class="text-caption text-ink-muted-48 leading-relaxed mb-4">
               We've calculated the minimum transfers required to settle all debts.
             </p>
 
-            <div class="space-y-md">
+            <div class="space-y-3">
               {transactions.map((tx, idx) => {
                 return (
                   <div
-                    class="settlement-row bg-surface-pearl border border-hairline rounded-lg p-md flex flex-col sm:flex-row sm:items-center justify-between gap-md transition-all"
+                    class="settlement-row bg-surface-pearl border border-hairline rounded-lg p-3.5 sm:p-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all"
                     data-tx-idx={idx}
                   >
                     <!-- Debtor and Creditor info -->
-                    <div class="truncate">
-                      <div class="flex items-center gap-xs text-body-strong text-ink font-semibold">
-                        <span class="truncate">{tx.fromName}</span>
+                    <div class="truncate flex-1">
+                      <div class="flex items-center gap-1.5 text-[15px] sm:text-body-strong text-ink font-semibold flex-wrap">
+                        <span class="truncate max-w-[140px] xs:max-w-none">{tx.fromName}</span>
                         <span class="text-zinc-400 font-normal">&rarr;</span>
-                        <span class="truncate text-primary">{tx.toName}</span>
+                        <span class="truncate max-w-[140px] xs:max-w-none text-primary">{tx.toName}</span>
                       </div>
-                      <span class="text-caption text-ink-muted-48 block mt-[2px]">
+                      <span class="text-caption text-ink-muted-48 block mt-1">
                         Amount: <span class="font-bold text-ink tabular-nums">{formatINR(tx.amountPaise)}</span>
                       </span>
                     </div>
 
                     <!-- Actions -->
-                    <div class="flex items-center gap-xs sm:gap-sm shrink-0">
+                    <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                       <!-- Record Paid Button (Only enabled for the receiver or admin) -->
                       <div class="relative">
                         <button
                           type="button"
-                          class="record-payment-btn border border-emerald-600/80 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 active:scale-95 text-[12px] font-sans font-semibold px-md py-xs rounded-pill transition-all cursor-pointer flex items-center gap-[4px] select-none shrink-0"
+                          class="record-payment-btn border border-emerald-600/80 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 active:scale-95 text-[12px] font-sans font-semibold px-3 py-1.5 rounded-pill transition-all cursor-pointer flex items-center gap-1 select-none shrink-0"
                           data-from-id={tx.fromMemberId}
                           data-to-id={tx.toMemberId}
                           data-from-name={tx.fromName}
@@ -143,7 +143,7 @@ const transactions = await Promise.all(
                       {tx.toUpiId ? (
                         <button
                           type="button"
-                          class="pay-btn bg-primary text-on-primary text-[12px] font-sans font-medium px-lg py-xs rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer shrink-0"
+                          class="pay-btn bg-primary text-on-primary text-[12px] font-sans font-semibold px-3.5 py-1.5 rounded-pill hover:bg-primary-focus active:scale-95 transition-all select-none cursor-pointer shrink-0 shadow-xs"
                           data-upi-link={tx.upiLink}
                           data-qr-url={tx.qrDataUrl}
                           data-payee={tx.toName}
@@ -154,7 +154,7 @@ const transactions = await Promise.all(
                       ) : (
                         <button
                           type="button"
-                          class="nudge-btn border border-primary text-primary text-[12px] font-sans font-medium px-lg py-xs rounded-pill hover:bg-zinc-50 active:scale-95 transition-all select-none cursor-pointer shrink-0"
+                          class="nudge-btn border border-primary text-primary text-[12px] font-sans font-medium px-3.5 py-1.5 rounded-pill hover:bg-zinc-50 active:scale-95 transition-all select-none cursor-pointer shrink-0"
                           data-payee-name={tx.toName}
                         >
                           Nudge UPI
@@ -171,8 +171,8 @@ const transactions = await Promise.all(
 
       <!-- Past Recorded Settlements (if any) -->
       {settlements.length > 0 && (
-        <div class="bg-white border border-hairline rounded-lg p-lg shadow-sm">
-          <h2 class="text-body-strong font-semibold text-ink mb-xxs">Recorded Settlements</h2>
+        <div class="bg-white border border-hairline rounded-lg p-4 sm:p-lg shadow-sm">
+          <h2 class="text-body-strong font-semibold text-ink mb-1">Recorded Settlements</h2>
           <p class="text-caption text-ink-muted-48 leading-relaxed mb-md">
             Direct peer-to-peer repayments confirmed in this trip.
           </p>
