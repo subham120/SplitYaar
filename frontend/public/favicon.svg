@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <circle cx="256" cy="256" r="256" fill="#0066cc"/>
+  <!-- Kinetic Split Emblem in Pure White -->
+  <g stroke="#ffffff" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Top & Left S-branch -->
+    <path d="M 180 180 C 180 130 260 130 300 170 L 370 240 M 180 180 L 180 230 C 180 280 280 280 280 340 C 280 390 190 390 150 350" />
+    <!-- Dynamic Split Arrow / Y Stem -->
+    <path d="M 320 280 L 370 230" />
+    <path d="M 330 230 L 370 230 L 370 270" fill="none" />
+    <!-- Lower Balance Arrow -->
+    <path d="M 190 350 L 150 350 L 150 310" fill="none" />
+  </g>
+  <circle cx="256" cy="256" r="28" fill="#ffffff" />
+</svg>
