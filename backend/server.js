@@ -38,6 +38,11 @@ const apiLimiter = rateLimit({
 app.use(cors());
 app.use(express.json({ limit: '50kb' }));
 
+// Health check (placed before rate limiter for external cron pingers)
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Apply rate limits
 app.use('/api/', apiLimiter);
 app.use('/api/auth', authLimiter);
@@ -45,11 +50,6 @@ app.use('/api/auth', authLimiter);
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/trips', tripRoutes);
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
 
 // Global error handler
 app.use((err, req, res, next) => {
